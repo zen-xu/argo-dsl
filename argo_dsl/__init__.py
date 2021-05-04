@@ -1,0 +1,5 @@
+__version__ = "0.1.dev1"
+__url__ = "https://github.com/zen-xu/argo-dsl"
+__author__ = "ZhengYu, Xu"
+__author_email__ = "zen-xu@outlook.com"
+__license__ = "Apache 2.0"
