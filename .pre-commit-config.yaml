@@ -1,0 +1,34 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 21.4b2
+    hooks:
+      - id: black
+        exclude: ^(docs/|example-plugin/|tests/|fixtures/)
+
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.8.0
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^tests/.*/fixtures/.*
+      - id: end-of-file-fixer
+        exclude: ^tests/.*/fixtures/.*
+      - id: debug-statements
+      - id: check-yaml
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.812
+    hooks:
+      -   id: mypy
+          additional_dependencies: [pydantic]
+          exclude: ^(docs/|example-plugin/|tests/|fixtures/)
+
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.9.1
+    hooks:
+      - id: flake8
+        exclude: ^(docs/|example-plugin/|tests/|fixtures/)
