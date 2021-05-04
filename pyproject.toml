@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "argo-dsl"
+version = "0.1.dev1"
+description = "Python DSL for argo workflow"
+authors = ["ZhengYu, Xu <zen-xu@outlook.com>"]
+license = "Apache License 2.0"
+readme = "README.md"
+repository = "https://github.com/zen-xu/argo-dsl"
+keywords = ["argo", "workflow", "dsl"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+pydantic = "^1.8.1"
+kubernetes = "^12.0.1"
+PyYAML = "^5.4.1"
+
+[tool.poetry.dev-dependencies]
+datamodel-code-generator = "^0.11.3"
+pytest = "^6.2.3"
+pytest-cov = "^2.11.1"
+pytest-sugar = "^0.9.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
