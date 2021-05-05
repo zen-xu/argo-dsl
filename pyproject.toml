@@ -25,7 +25,7 @@ kubernetes = "^12.0.1"
 PyYAML = "^5.4.1"
 
 [tool.poetry.dev-dependencies]
-datamodel-code-generator = "^0.11.3"
+datamodel-code-generator = {extras = ["http"], version = "^0.11.3"}
 pytest = "^6.2.3"
 pytest-cov = "^2.11.1"
 pytest-sugar = "^0.9.4"
