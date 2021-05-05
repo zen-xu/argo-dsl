@@ -29,6 +29,8 @@ datamodel-code-generator = {extras = ["http"], version = "^0.11.3"}
 pytest = "^6.2.3"
 pytest-cov = "^2.11.1"
 pytest-sugar = "^0.9.4"
+black = "^21.5b0"
+isort = "^5.8.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
