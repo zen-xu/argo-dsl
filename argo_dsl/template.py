@@ -1,24 +1,44 @@
 from __future__ import annotations
 
-from abc import ABCMeta
+from abc import ABC
+from abc import abstractmethod
 from typing import Dict
 from typing import List
 from typing import Optional
 from typing import TypeVar
 
+import yaml
+
 from pydantic.typing import resolve_annotations
 from typing_extensions import Literal
 
+from argo_dsl.api.io.argoproj.workflow.v1alpha1 import Inputs
 from argo_dsl.api.io.argoproj.workflow.v1alpha1 import Parameter
+from argo_dsl.api.io.argoproj.workflow.v1alpha1 import ScriptTemplate as ArgoScriptTemplate
+from argo_dsl.api.io.argoproj.workflow.v1alpha1 import Template as ArgoTemplate
 from argo_dsl.api.io.argoproj.workflow.v1alpha1 import ValueFrom
+from argo_dsl.api.io.k8s.api.core.v1 import Container
 
 
 T = TypeVar("T")
 
 
-class Template(metaclass=ABCMeta):
+class Template(ABC):
     name: Optional[str] = None
     Parameters: Optional[type] = None
+
+    def __init__(self):
+        self.template = self.compile()
+
+    def update_template(self):
+        self.template = self.compile()
+
+    @abstractmethod
+    def compile(self) -> ArgoTemplate:
+        ...
+
+    def __repr__(self) -> str:
+        return yaml.dump(self.template.dict(exclude_none=True))
 
 
 def new_parameters(cls: Optional[type]) -> List[Parameter]:
@@ -31,9 +51,7 @@ def new_parameters(cls: Optional[type]) -> List[Parameter]:
     )
 
     default_values: Dict[str, str] = {
-        field: value
-        for field, value in cls.__dict__.items()
-        if not field.startswith("_")
+        field: value for field, value in cls.__dict__.items() if not field.startswith("_")
     }
 
     parameters: List[Parameter] = []
@@ -57,3 +75,35 @@ def new_parameters(cls: Optional[type]) -> List[Parameter]:
         parameters.append(parameter)
 
     return parameters
+
+
+class ContainerTemplate(Template):
+    def __init__(self, container: Container):
+        self.container = container
+        super().__init__()
+
+    def compile(self) -> ArgoTemplate:
+        parameters = new_parameters(self.Parameters)
+        name = self.name or self.__class__.__name__
+
+        return ArgoTemplate(
+            name=name,
+            inputs=Inputs(parameters=parameters),
+            container=self.container,
+        )
+
+
+class ScriptTemplate(Template):
+    def __init__(self, script: ArgoScriptTemplate):
+        self.script = script
+        super().__init__()
+
+    def compile(self) -> ArgoTemplate:
+        parameters = new_parameters(self.Parameters)
+        name = self.name or self.__class__.__name__
+
+        return ArgoTemplate(
+            name=name,
+            inputs=Inputs(parameters=parameters),
+            script=self.script,
+        )
