@@ -4,13 +4,14 @@ from abc import ABC
 from abc import abstractmethod
 from typing import ClassVar
 from typing import Dict
+from typing import Final
+from typing import Generic
 from typing import List
 from typing import Optional
 from typing import TypeVar
 
 import yaml
 
-from pydantic import validate_arguments
 from pydantic.typing import resolve_annotations
 from typing_extensions import Literal
 
@@ -75,61 +76,34 @@ def new_parameters(cls: Optional[type]) -> List[v1alpha1.Parameter]:
     return parameters
 
 
-class ContainerTemplate(Template):
-    @validate_arguments
-    def __init__(self, container: Optional[v1.Container]):
-        self.container = container or self.specify_container()
+class ExecutorTemplate(Template, Generic[T]):
+    manifest_type: ClassVar[str]
+
+    def __init__(self, manifest: Optional[T] = None):
         super().__init__()
+        self.manifest: T = manifest or self.specify_manifest()
 
     def compile(self) -> v1alpha1.Template:
         parameters = new_parameters(self.Parameters)
         name = self.name or self.__class__.__name__
 
-        return v1alpha1.Template(
-            name=name,
-            inputs=v1alpha1.Inputs(parameters=parameters),
-            container=self.container,
+        return v1alpha1.Template.validate(
+            {"name": name, "inputs": v1alpha1.Inputs(parameters=parameters), self.manifest_type: self.manifest}
         )
 
-    def specify_container(self) -> v1.Container:
-        raise NotImplementedError
+    def specify_manifest(self) -> T:
+        # if `manifest` is not provided when __init__, Template should promise
+        # has implemented the method `specify_manifest`
+        raise RuntimeError("Need implement method `specify_manifest`")
 
 
-class ScriptTemplate(Template):
-    @validate_arguments
-    def __init__(self, script: Optional[v1alpha1.ScriptTemplate]):
-        self.script = script or self.specify_script()
-        super().__init__()
-
-    def compile(self) -> v1alpha1.Template:
-        parameters = new_parameters(self.Parameters)
-        name = self.name or self.__class__.__name__
-
-        return v1alpha1.Template(
-            name=name,
-            inputs=v1alpha1.Inputs(parameters=parameters),
-            script=self.script,
-        )
-
-    def specify_script(self) -> v1alpha1.ScriptTemplate:
-        raise NotImplementedError
+class ContainerTemplate(ExecutorTemplate[v1.Container]):
+    manifest_type: Final[ClassVar[str]] = "container"  # type: ignore
 
 
-class ResourceTemplate(Template):
-    @validate_arguments
-    def __init__(self, script: Optional[v1alpha1.ResourceTemplate]):
-        self.resource = script or self.specify_resource()
-        super().__init__()
+class ScriptTemplate(ExecutorTemplate[v1alpha1.ScriptTemplate]):
+    manifest_type: Final[ClassVar[str]] = "script"  # type: ignore
 
-    def compile(self) -> v1alpha1.Template:
-        parameters = new_parameters(self.Parameters)
-        name = self.name or self.__class__.__name__
 
-        return v1alpha1.Template(
-            name=name,
-            inputs=v1alpha1.Inputs(parameters=parameters),
-            resource=self.resource,
-        )
-
-    def specify_resource(self) -> v1alpha1.ResourceTemplate:
-        raise NotImplementedError
+class ResourceTemplate(ExecutorTemplate[v1alpha1.ResourceTemplate]):
+    manifest_type: Final[ClassVar[str]] = "resource"  # type: ignore
