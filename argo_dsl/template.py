@@ -78,8 +78,8 @@ def new_parameters(cls: Optional[type]) -> List[Parameter]:
 
 
 class ContainerTemplate(Template):
-    def __init__(self, container: Container):
-        self.container = container
+    def __init__(self, container: Optional[Container]):
+        self.container = container or self.specify_container()
         super().__init__()
 
     def compile(self) -> ArgoTemplate:
@@ -92,10 +92,13 @@ class ContainerTemplate(Template):
             container=self.container,
         )
 
+    def specify_container(self) -> Container:
+        raise NotImplementedError
+
 
 class ScriptTemplate(Template):
-    def __init__(self, script: ArgoScriptTemplate):
-        self.script = script
+    def __init__(self, script: Optional[ArgoScriptTemplate]):
+        self.script = script or self.specify_script()
         super().__init__()
 
     def compile(self) -> ArgoTemplate:
@@ -107,3 +110,6 @@ class ScriptTemplate(Template):
             inputs=Inputs(parameters=parameters),
             script=self.script,
         )
+
+    def specify_script(self) -> ArgoScriptTemplate:
+        raise NotImplementedError
