@@ -113,3 +113,23 @@ class ScriptTemplate(Template):
 
     def specify_script(self) -> v1alpha1.ScriptTemplate:
         raise NotImplementedError
+
+
+class ResourceTemplate(Template):
+    @validate_arguments
+    def __init__(self, script: Optional[v1alpha1.ResourceTemplate]):
+        self.resource = script or self.specify_resource()
+        super().__init__()
+
+    def compile(self) -> v1alpha1.Template:
+        parameters = new_parameters(self.Parameters)
+        name = self.name or self.__class__.__name__
+
+        return v1alpha1.Template(
+            name=name,
+            inputs=v1alpha1.Inputs(parameters=parameters),
+            resource=self.resource,
+        )
+
+    def specify_resource(self) -> v1alpha1.ResourceTemplate:
+        raise NotImplementedError
