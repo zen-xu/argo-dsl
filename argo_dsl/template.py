@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 from abc import abstractmethod
+from typing import ClassVar
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -24,8 +25,8 @@ T = TypeVar("T")
 
 
 class Template(ABC):
-    name: Optional[str] = None
-    Parameters: Optional[type] = None
+    name: ClassVar[Optional[str]] = None
+    Parameters: ClassVar[Optional[type]] = None
 
     def __init__(self):
         self.template = self.compile()
