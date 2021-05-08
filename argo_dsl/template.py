@@ -10,6 +10,7 @@ from typing import TypeVar
 
 import yaml
 
+from pydantic import validate_arguments
 from pydantic.typing import resolve_annotations
 from typing_extensions import Literal
 
@@ -79,6 +80,7 @@ def new_parameters(cls: Optional[type]) -> List[Parameter]:
 
 
 class ContainerTemplate(Template):
+    @validate_arguments
     def __init__(self, container: Optional[Container]):
         self.container = container or self.specify_container()
         super().__init__()
@@ -98,6 +100,7 @@ class ContainerTemplate(Template):
 
 
 class ScriptTemplate(Template):
+    @validate_arguments
     def __init__(self, script: Optional[ArgoScriptTemplate]):
         self.script = script or self.specify_script()
         super().__init__()
