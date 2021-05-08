@@ -14,12 +14,8 @@ from pydantic import validate_arguments
 from pydantic.typing import resolve_annotations
 from typing_extensions import Literal
 
-from argo_dsl.api.io.argoproj.workflow.v1alpha1 import Inputs
-from argo_dsl.api.io.argoproj.workflow.v1alpha1 import Parameter
-from argo_dsl.api.io.argoproj.workflow.v1alpha1 import ScriptTemplate as ArgoScriptTemplate
-from argo_dsl.api.io.argoproj.workflow.v1alpha1 import Template as ArgoTemplate
-from argo_dsl.api.io.argoproj.workflow.v1alpha1 import ValueFrom
-from argo_dsl.api.io.k8s.api.core.v1 import Container
+from argo_dsl.api.io.argoproj.workflow import v1alpha1
+from argo_dsl.api.io.k8s.api.core import v1
 
 
 T = TypeVar("T")
@@ -36,14 +32,14 @@ class Template(ABC):
         self.template = self.compile()
 
     @abstractmethod
-    def compile(self) -> ArgoTemplate:
+    def compile(self) -> v1alpha1.Template:
         ...
 
     def __repr__(self) -> str:
         return yaml.dump(self.template.dict(exclude_none=True))
 
 
-def new_parameters(cls: Optional[type]) -> List[Parameter]:
+def new_parameters(cls: Optional[type]) -> List[v1alpha1.Parameter]:
     if cls is None:
         return []
 
@@ -56,14 +52,14 @@ def new_parameters(cls: Optional[type]) -> List[Parameter]:
         field: value for field, value in cls.__dict__.items() if not field.startswith("_")
     }
 
-    parameters: List[Parameter] = []
+    parameters: List[v1alpha1.Parameter] = []
     for parameter_name, parameter_type in annos.items():
-        parameter = Parameter(name=parameter_name)
+        parameter = v1alpha1.Parameter(name=parameter_name)
 
         if parameter_name in default_values:
             default_value = default_values[parameter_name]
 
-            if isinstance(default_value, ValueFrom):
+            if isinstance(default_value, v1alpha1.ValueFrom):
                 parameter.valueFrom = default_value
                 parameters.append(parameter)
                 continue
@@ -81,39 +77,39 @@ def new_parameters(cls: Optional[type]) -> List[Parameter]:
 
 class ContainerTemplate(Template):
     @validate_arguments
-    def __init__(self, container: Optional[Container]):
+    def __init__(self, container: Optional[v1.Container]):
         self.container = container or self.specify_container()
         super().__init__()
 
-    def compile(self) -> ArgoTemplate:
+    def compile(self) -> v1alpha1.Template:
         parameters = new_parameters(self.Parameters)
         name = self.name or self.__class__.__name__
 
-        return ArgoTemplate(
+        return v1alpha1.Template(
             name=name,
-            inputs=Inputs(parameters=parameters),
+            inputs=v1alpha1.Inputs(parameters=parameters),
             container=self.container,
         )
 
-    def specify_container(self) -> Container:
+    def specify_container(self) -> v1.Container:
         raise NotImplementedError
 
 
 class ScriptTemplate(Template):
     @validate_arguments
-    def __init__(self, script: Optional[ArgoScriptTemplate]):
+    def __init__(self, script: Optional[v1alpha1.ScriptTemplate]):
         self.script = script or self.specify_script()
         super().__init__()
 
-    def compile(self) -> ArgoTemplate:
+    def compile(self) -> v1alpha1.Template:
         parameters = new_parameters(self.Parameters)
         name = self.name or self.__class__.__name__
 
-        return ArgoTemplate(
+        return v1alpha1.Template(
             name=name,
-            inputs=Inputs(parameters=parameters),
+            inputs=v1alpha1.Inputs(parameters=parameters),
             script=self.script,
         )
 
-    def specify_script(self) -> ArgoScriptTemplate:
+    def specify_script(self) -> v1alpha1.ScriptTemplate:
         raise NotImplementedError
