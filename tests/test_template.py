@@ -1,4 +1,4 @@
-from typing import Literal
+from typing_extensions import Literal
 
 from argo_dsl.api.io.argoproj.workflow.v1alpha1 import Parameter
 from argo_dsl.api.io.argoproj.workflow.v1alpha1 import ValueFrom
