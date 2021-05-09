@@ -4,11 +4,11 @@ from abc import ABC
 from abc import abstractmethod
 from typing import ClassVar
 from typing import Dict
-from typing import Final
 from typing import Generic
 from typing import List
 from typing import Optional
 from typing import TypeVar
+from typing import Union
 
 import yaml
 
@@ -25,8 +25,16 @@ T = TypeVar("T")
 class Template(ABC):
     name: ClassVar[Optional[str]] = None
     Parameters: ClassVar[Optional[type]] = None
+    template: v1alpha1.Template
 
-    def __init__(self):
+    def __new__(cls, *, name: Optional[str] = None, parameters_class: Optional[type] = None, **kwargs) -> Template:
+        cls.name = name or cls.name
+        cls.Parameters = parameters_class or cls.Parameters
+
+        template = super().__new__(cls)
+        return template
+
+    def __init__(self, *, name: Optional[str] = None, parameters_class: Optional[type] = None):
         self.template = self.compile()
 
     def update_template(self):
@@ -40,9 +48,9 @@ class Template(ABC):
         return yaml.dump(self.template.dict(exclude_none=True))
 
 
-def new_parameters(cls: Optional[type]) -> List[v1alpha1.Parameter]:
+def new_parameters(cls: Optional[type]) -> Optional[List[v1alpha1.Parameter]]:
     if cls is None:
-        return []
+        return None
 
     annos = resolve_annotations(
         cls.__annotations__,
@@ -77,11 +85,32 @@ def new_parameters(cls: Optional[type]) -> List[v1alpha1.Parameter]:
 
 
 class ExecutorTemplate(Template, Generic[T]):
-    manifest_type: ClassVar[str]
+    manifest_type: str
+    manifest: Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]
 
-    def __init__(self, manifest: Optional[T] = None):
-        super().__init__()
-        self.manifest: T = manifest or self.specify_manifest()
+    def __init__(
+        self,
+        *,
+        name: Optional[str] = None,
+        parameters_class: Optional[type] = None,
+        manifest: Optional[Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]] = None,
+    ):
+        manifest: T = manifest or self.specify_manifest()
+
+        if isinstance(manifest, v1.Container):
+            self.manifest_type = "container"
+        elif isinstance(manifest, v1alpha1.ScriptTemplate):
+            self.manifest_type = "script"
+        elif isinstance(manifest, v1alpha1.ResourceTemplate):
+            self.manifest_type = "resource"
+        else:
+            raise RuntimeError(
+                f"Unknown manifest type `{type(manifest)}`, must be v1.Container, "
+                "v1alpha1.ScriptTemplate or v1alpha1.ResourceTemplate"
+            )
+        self.manifest = manifest
+
+        super().__init__(name=name, parameters_class=parameters_class)
 
     def compile(self) -> v1alpha1.Template:
         parameters = new_parameters(self.Parameters)
@@ -98,12 +127,12 @@ class ExecutorTemplate(Template, Generic[T]):
 
 
 class ContainerTemplate(ExecutorTemplate[v1.Container]):
-    manifest_type: Final[ClassVar[str]] = "container"  # type: ignore
+    ...
 
 
 class ScriptTemplate(ExecutorTemplate[v1alpha1.ScriptTemplate]):
-    manifest_type: Final[ClassVar[str]] = "script"  # type: ignore
+    ...
 
 
 class ResourceTemplate(ExecutorTemplate[v1alpha1.ResourceTemplate]):
-    manifest_type: Final[ClassVar[str]] = "resource"  # type: ignore
+    ...
