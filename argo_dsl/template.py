@@ -9,6 +9,7 @@ from typing import List
 from typing import Optional
 from typing import TypeVar
 from typing import Union
+from typing import cast
 
 import yaml
 
@@ -27,14 +28,14 @@ class Template(ABC):
     Parameters: ClassVar[Optional[type]] = None
     template: v1alpha1.Template
 
-    def __new__(cls, *, name: Optional[str] = None, parameters_class: Optional[type] = None, **kwargs) -> Template:
+    def __new__(cls, *, name: Optional[str] = None, parameters_class: Optional[type] = None) -> Template:
         cls.name = name or cls.name
         cls.Parameters = parameters_class or cls.Parameters
 
         template = super().__new__(cls)
         return template
 
-    def __init__(self, *, name: Optional[str] = None, parameters_class: Optional[type] = None):
+    def __init__(self, **kwargs):
         self.template = self.compile()
 
     def update_template(self):
@@ -88,29 +89,31 @@ class ExecutorTemplate(Template, Generic[T]):
     manifest_type: str
     manifest: Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         *,
         name: Optional[str] = None,
         parameters_class: Optional[type] = None,
         manifest: Optional[Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]] = None,
-    ):
-        manifest: T = manifest or self.specify_manifest()
+    ) -> ExecutorTemplate:
+        template = cast(ExecutorTemplate, super().__new__(cls, name=name, parameters_class=parameters_class))
+
+        manifest: T = manifest or template.specify_manifest()
 
         if isinstance(manifest, v1.Container):
-            self.manifest_type = "container"
+            template.manifest_type = "container"
         elif isinstance(manifest, v1alpha1.ScriptTemplate):
-            self.manifest_type = "script"
+            template.manifest_type = "script"
         elif isinstance(manifest, v1alpha1.ResourceTemplate):
-            self.manifest_type = "resource"
+            template.manifest_type = "resource"
         else:
             raise RuntimeError(
                 f"Unknown manifest type `{type(manifest)}`, must be v1.Container, "
                 "v1alpha1.ScriptTemplate or v1alpha1.ResourceTemplate"
             )
-        self.manifest = manifest
+        template.manifest = manifest
 
-        super().__init__(name=name, parameters_class=parameters_class)
+        return template
 
     def compile(self) -> v1alpha1.Template:
         parameters = new_parameters(self.Parameters)
