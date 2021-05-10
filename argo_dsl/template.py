@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 from abc import abstractmethod
+from typing import Callable
 from typing import ClassVar
 from typing import Dict
 from typing import Generic
@@ -27,16 +28,26 @@ class Template(ABC):
     name: ClassVar[Optional[str]] = None
     Parameters: ClassVar[Optional[type]] = None
     template: v1alpha1.Template
+    __hooks__: ClassVar[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = []
 
-    def __new__(cls, *, name: Optional[str] = None, parameters_class: Optional[type] = None) -> Template:
+    def __new__(
+        cls,
+        *,
+        name: Optional[str] = None,
+        parameters_class: Optional[type] = None,
+        hooks: Optional[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = None,
+    ) -> Template:
         cls.name = name or cls.name
         cls.Parameters = parameters_class or cls.Parameters
+        cls.__hooks__ = hooks or cls.__hooks__
 
         template = super().__new__(cls)
         return template
 
     def __init__(self, **kwargs):
         self.template = self.compile()
+        for hook in self.__hooks__:
+            self.template = hook(self.template)
 
     def update_template(self):
         self.template = self.compile()
@@ -94,9 +105,12 @@ class ExecutorTemplate(Template, Generic[T]):
         *,
         name: Optional[str] = None,
         parameters_class: Optional[type] = None,
+        hooks: Optional[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = None,
         manifest: Optional[Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]] = None,
     ) -> ExecutorTemplate:
-        template = cast(ExecutorTemplate, super().__new__(cls, name=name, parameters_class=parameters_class))
+        template = cast(
+            ExecutorTemplate, super().__new__(cls, name=name, parameters_class=parameters_class, hooks=hooks)
+        )
 
         manifest: T = manifest or template.specify_manifest()
 

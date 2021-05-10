@@ -135,3 +135,54 @@ def test_resource_template_with_implementation():
         ),
         resource=resource,
     )
+
+
+def test_template_hooks_with_input_parameters():
+    container = v1.Container(image="ubuntu")
+
+    class Parameters:
+        v1: str
+        v2: str = "123"
+
+    def change_name(template: v1alpha1.Template) -> v1alpha1.Template:
+        template.name = "test2"
+        return template
+
+    assert ContainerTemplate(
+        name="test", parameters_class=Parameters, manifest=container, hooks=[change_name]
+    ).template == v1alpha1.Template(
+        name="test2",
+        inputs=v1alpha1.Inputs(
+            parameters=[v1alpha1.Parameter(name="v1"), v1alpha1.Parameter(name="v2", default="123")]
+        ),
+        container=container,
+    )
+
+
+def test_template_hooks_with_implementation():
+    container = v1.Container(image="ubuntu")
+
+    class TestTemplate(ContainerTemplate):
+        name: ClassVar[str] = "test"
+
+        class Parameters:
+            v1: str
+            v2: str = "123"
+
+        @classmethod
+        def specify_manifest(cls) -> v1.Container:
+            return container
+
+    def change_name(template: v1alpha1.Template) -> v1alpha1.Template:
+        template.name = "test2"
+        return template
+
+    TestTemplate.__hooks__.append(change_name)
+
+    assert TestTemplate().template == v1alpha1.Template(
+        name="test2",
+        inputs=v1alpha1.Inputs(
+            parameters=[v1alpha1.Parameter(name="v1"), v1alpha1.Parameter(name="v2", default="123")]
+        ),
+        container=container,
+    )
