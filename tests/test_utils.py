@@ -52,6 +52,7 @@ def test_function_class_with_func():
 
     func = Function(hello)
 
+    assert func.name == "hello"
     assert (
         func.body
         == """\
@@ -100,6 +101,7 @@ def test_function_class_with_method():
 
     func = Function(C().hello)
 
+    assert func.name == "hello"
     assert (
         func.body
         == """\
