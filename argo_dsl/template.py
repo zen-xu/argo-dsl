@@ -8,6 +8,7 @@ from typing import Dict
 from typing import Generic
 from typing import List
 from typing import Optional
+from typing import Type
 from typing import TypeVar
 from typing import Union
 from typing import cast
@@ -26,7 +27,7 @@ T = TypeVar("T")
 
 class Template(ABC):
     name: ClassVar[Optional[str]] = None
-    Parameters: ClassVar[Optional[type]] = None
+    Parameters: ClassVar[Optional[Type]] = None
     template: v1alpha1.Template
     __hooks__: ClassVar[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = []
 
@@ -34,7 +35,7 @@ class Template(ABC):
         cls,
         *,
         name: Optional[str] = None,
-        parameters_class: Optional[type] = None,
+        parameters_class: Optional[Type] = None,
         hooks: Optional[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = None,
     ) -> Template:
         cls.name = name or cls.name
@@ -60,7 +61,7 @@ class Template(ABC):
         return yaml.dump(self.template.dict(exclude_none=True))
 
 
-def new_parameters(cls: Optional[type]) -> Optional[List[v1alpha1.Parameter]]:
+def new_parameters(cls: Optional[Type]) -> Optional[List[v1alpha1.Parameter]]:
     if cls is None:
         return None
 
@@ -104,7 +105,7 @@ class ExecutorTemplate(Template, Generic[T]):
         cls,
         *,
         name: Optional[str] = None,
-        parameters_class: Optional[type] = None,
+        parameters_class: Optional[Type] = None,
         hooks: Optional[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = None,
         manifest: Optional[Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]] = None,
     ) -> ExecutorTemplate:

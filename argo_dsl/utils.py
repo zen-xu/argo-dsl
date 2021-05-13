@@ -6,6 +6,7 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Optional
+from typing import Type
 from typing import Union
 
 
@@ -57,7 +58,7 @@ class Function:
             self.return_value = str(func(*([None] * len(parameters))))
 
     @staticmethod
-    def _new_parameters_class(parameters: Dict[str, inspect.Parameter]) -> type:
+    def _new_parameters_class(parameters: Dict[str, inspect.Parameter]) -> Type:
         annotations = {
             parameter.name: str if parameter.annotation is parameter.empty else parameter.annotation
             for parameter in parameters.values()
