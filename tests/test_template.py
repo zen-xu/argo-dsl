@@ -1,3 +1,5 @@
+import pytest
+
 from argo_dsl.template import *
 
 
@@ -46,8 +48,7 @@ def test_container_template_with_implementation():
             v1: str
             v2: str = "123"
 
-        @classmethod
-        def specify_manifest(cls) -> v1.Container:
+        def specify_manifest(self) -> v1.Container:
             return container
 
     assert TestTemplate().template == v1alpha1.Template(
@@ -85,8 +86,7 @@ def test_script_template_with_implementation():
             v1: str
             v2: str = "123"
 
-        @classmethod
-        def specify_manifest(cls) -> v1alpha1.ScriptTemplate:
+        def specify_manifest(self) -> v1alpha1.ScriptTemplate:
             return script
 
     assert TestScriptTemplate().template == v1alpha1.Template(
@@ -124,8 +124,7 @@ def test_resource_template_with_implementation():
             v1: str
             v2: str = "123"
 
-        @classmethod
-        def specify_manifest(cls) -> v1alpha1.ResourceTemplate:
+        def specify_manifest(self) -> v1alpha1.ResourceTemplate:
             return resource
 
     assert TestResourceTemplate().template == v1alpha1.Template(
@@ -169,8 +168,7 @@ def test_template_hooks_with_implementation():
             v1: str
             v2: str = "123"
 
-        @classmethod
-        def specify_manifest(cls) -> v1.Container:
+        def specify_manifest(self) -> v1.Container:
             return container
 
     def change_name(template: v1alpha1.Template) -> v1alpha1.Template:
