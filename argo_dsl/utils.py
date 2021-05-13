@@ -49,13 +49,13 @@ class Function:
         self.func = func
         self.body = get_function_body(func)
         self.docstring = textwrap.dedent(func.__doc__ or "").strip()
-        parameters: Dict[str, inspect.Parameter] = dict(inspect.signature(func).parameters)
-        parameters.pop("self", None)
-        self.parameter_class = self._new_parameters_class(parameters)
+        self.parameters: Dict[str, inspect.Parameter] = dict(inspect.signature(func).parameters)
+        self.parameters.pop("self", None)
+        self.parameter_class = self._new_parameters_class(self.parameters)
         self.return_value = None
 
         if check_function_has_return_value(func):
-            self.return_value = str(func(*([None] * len(parameters))))
+            self.return_value = str(func(*([None] * len(self.parameters))))
 
     @staticmethod
     def _new_parameters_class(parameters: Dict[str, inspect.Parameter]) -> type:
