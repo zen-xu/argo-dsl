@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from typing_extensions import Literal
 
 from argo_dsl.api.io.argoproj.workflow.v1alpha1 import Parameter
@@ -118,3 +120,9 @@ print("Hello World")
         Parameter(name="d", valueFrom=ValueFrom(default="123")),
     ]
     assert func.return_value is None
+
+
+def test_shorten_repr():
+    assert shorten_repr("12345", 10) == "12345"
+    assert shorten_repr(12345678, 5) == "12345[...]"
+    assert shorten_repr(Decimal(45678), 10) == "Decimal('4[...]"

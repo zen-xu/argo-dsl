@@ -71,3 +71,15 @@ class Function:
         }
 
         return type("Parameters", (), {**defaults, "__annotations__": annotations})
+
+
+def shorten_repr(obj: Any, max_length: int) -> str:
+    if isinstance(obj, str):
+        repr_obj = obj
+    else:
+        repr_obj = repr(obj)
+
+    if len(repr_obj) > max_length:
+        return repr_obj[:max_length] + "[...]"
+
+    return repr_obj
