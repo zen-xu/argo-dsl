@@ -145,11 +145,43 @@ class ExecutorTemplate(Template, Generic[T]):
 
 
 class ContainerTemplate(ExecutorTemplate[v1.Container]):
-    ...
+    image: Optional[str] = None
+
+    def __new__(
+        cls,
+        *,
+        name: Optional[str] = None,
+        image: Optional[str] = None,
+        parameters_class: Optional[type] = None,
+        hooks: Optional[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = None,
+        manifest: Optional[Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]] = None,
+    ) -> ContainerTemplate:
+        template = cast(
+            ContainerTemplate,
+            super().__new__(cls, name=name, parameters_class=parameters_class, hooks=hooks, manifest=manifest),
+        )
+        template.image = image or cls.image
+        return template
 
 
 class ScriptTemplate(ExecutorTemplate[v1alpha1.ScriptTemplate]):
-    ...
+    image: Optional[str] = None
+
+    def __new__(
+        cls,
+        *,
+        name: Optional[str] = None,
+        image: Optional[str] = None,
+        parameters_class: Optional[type] = None,
+        hooks: Optional[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = None,
+        manifest: Optional[Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]] = None,
+    ) -> ScriptTemplate:
+        template = cast(
+            ScriptTemplate,
+            super().__new__(cls, name=name, parameters_class=parameters_class, hooks=hooks, manifest=manifest),
+        )
+        template.image = image or cls.image
+        return template
 
 
 class ResourceTemplate(ExecutorTemplate[v1alpha1.ResourceTemplate]):
