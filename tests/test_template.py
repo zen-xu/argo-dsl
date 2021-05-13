@@ -66,7 +66,7 @@ def test_script_template_with_input_parameters():
         v1: str
         v2: str = "123"
 
-    assert ContainerTemplate(name="test", parameters_class=Parameters, manifest=script).template == v1alpha1.Template(
+    assert ScriptTemplate(name="test", parameters_class=Parameters, manifest=script).template == v1alpha1.Template(
         name="test",
         inputs=v1alpha1.Inputs(
             parameters=[v1alpha1.Parameter(name="v1"), v1alpha1.Parameter(name="v2", default="123")]
