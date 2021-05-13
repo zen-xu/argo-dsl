@@ -46,6 +46,7 @@ def check_function_has_return_value(func: Callable[..., Any]) -> bool:
 
 class Function:
     def __init__(self, func: Callable[..., Union[Optional[str], None]]):
+        self.name = func.__name__
         self.func = func
         self.body = get_function_body(func)
         self.docstring = textwrap.dedent(func.__doc__ or "").strip()
