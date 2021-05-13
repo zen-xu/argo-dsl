@@ -60,6 +60,28 @@ def test_container_template_with_implementation():
     )
 
 
+def test_container_template_with_given_image():
+    container = v1.Container(image="ubuntu")
+
+    class TestTemplate(ScriptTemplate):
+        name: ClassVar[str] = "test"
+        image = "ubuntu"
+
+        class Parameters:
+            v1: str
+            v2: str = "123"
+
+        def specify_manifest(self) -> v1alpha1.ScriptTemplate:
+            return container
+
+    assert TestTemplate().image == "ubuntu"
+
+    assert (
+        TestTemplate(name="test", image="ubuntu", parameters_class=TestTemplate.Parameters, manifest=container).image
+        == "ubuntu"
+    )
+
+
 def test_script_template_with_input_parameters():
     script = v1alpha1.ScriptTemplate(image="ubuntu", source="echo hello")
 
@@ -95,6 +117,30 @@ def test_script_template_with_implementation():
             parameters=[v1alpha1.Parameter(name="v1"), v1alpha1.Parameter(name="v2", default="123")]
         ),
         script=script,
+    )
+
+
+def test_script_template_with_given_image():
+    script = v1alpha1.ScriptTemplate(image="ubuntu", source="echo hello")
+
+    class TestScriptTemplate(ScriptTemplate):
+        name: ClassVar[str] = "test"
+        image = "ubuntu"
+
+        class Parameters:
+            v1: str
+            v2: str = "123"
+
+        def specify_manifest(self) -> v1alpha1.ScriptTemplate:
+            return script
+
+    assert TestScriptTemplate().image == "ubuntu"
+
+    assert (
+        ScriptTemplate(
+            name="test", image="ubuntu", parameters_class=TestScriptTemplate.Parameters, manifest=script
+        ).image
+        == "ubuntu"
     )
 
 
