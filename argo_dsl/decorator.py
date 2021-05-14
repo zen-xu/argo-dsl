@@ -65,7 +65,7 @@ class BashDecorator(ScriptDecorator):
 
     def generate_source(self) -> str:
         source = super().generate_source()
-        parameters = ["%s={{inputs.parameters.%s}}" % (parameter, parameter) for parameter in self.func.parameters]
+        parameters = ['%s="{{inputs.parameters.%s}}"' % (parameter, parameter) for parameter in self.func.parameters]
         source = "\n".join(parameters) + "\n" + source
 
         return source
