@@ -1,5 +1,7 @@
+from typing import Any
 from typing import Callable
 from typing import ClassVar
+from typing import Dict
 from typing import Optional
 from typing import Type
 
@@ -113,10 +115,13 @@ del load_args"""
         if not self.func.parameters:
             return parameter_class
 
-        class Parameters(parameter_class):  # type: ignore
-            arg_pickle: str
+        annotations = dict(parameter_class.__annotations__)
+        annotations["arg_pickle"] = str
 
-        return Parameters
+        default_fields: Dict[str, Any] = {
+            k: str(v) for k, v in parameter_class.__dict__.items() if not k.startswith("_")
+        }
+        return type("Parameters", (), {"__annotations__": annotations, **default_fields})
 
 
 python = PythonDecorator
