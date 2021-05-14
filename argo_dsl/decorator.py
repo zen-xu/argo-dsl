@@ -24,9 +24,9 @@ class ExecutorTemplateDecorator:
 
 
 class ScriptDecorator(ExecutorTemplateDecorator):
-    command: ClassVar[str]
-    pre_run: ClassVar[str] = ""
-    post_run: ClassVar[str] = ""
+    command: str = ""
+    pre_run: str = ""
+    post_run: str = ""
 
     def generate_template(self) -> Type[ScriptTemplate]:
         source = self.generate_source()
