@@ -43,13 +43,11 @@ def test_container_template_with_implementation():
 
     class TestTemplate(ContainerTemplate):
         name: ClassVar[str] = "test"
+        image = "ubuntu"
 
         class Parameters:
             v1: str
             v2: str = "123"
-
-        def specify_manifest(self) -> v1.Container:
-            return container
 
     assert TestTemplate().template == v1alpha1.Template(
         name="test",
@@ -60,26 +58,15 @@ def test_container_template_with_implementation():
     )
 
 
-def test_container_template_with_given_image():
-    container = v1.Container(image="ubuntu")
+def test_missing_template_required_field():
+    with pytest.raises(RuntimeError, match=r"'Container' must specify attribute 'image'"):
 
-    class TestTemplate(ScriptTemplate):
-        name: ClassVar[str] = "test"
-        image = "ubuntu"
+        class Container(ContainerTemplate):
+            class Parameters:
+                v1: str
+                v2: str = "123"
 
-        class Parameters:
-            v1: str
-            v2: str = "123"
-
-        def specify_manifest(self) -> v1alpha1.ScriptTemplate:
-            return container
-
-    assert TestTemplate().image == "ubuntu"
-
-    assert (
-        TestTemplate(name="test", image="ubuntu", parameters_class=TestTemplate.Parameters, manifest=container).image
-        == "ubuntu"
-    )
+        Container()
 
 
 def test_script_template_with_input_parameters():
@@ -103,13 +90,12 @@ def test_script_template_with_implementation():
 
     class TestScriptTemplate(ScriptTemplate):
         name: ClassVar[str] = "test"
+        image = "ubuntu"
+        source = "echo hello"
 
         class Parameters:
             v1: str
             v2: str = "123"
-
-        def specify_manifest(self) -> v1alpha1.ScriptTemplate:
-            return script
 
     assert TestScriptTemplate().template == v1alpha1.Template(
         name="test",
@@ -120,30 +106,6 @@ def test_script_template_with_implementation():
     )
 
 
-def test_script_template_with_given_image():
-    script = v1alpha1.ScriptTemplate(image="ubuntu", source="echo hello")
-
-    class TestScriptTemplate(ScriptTemplate):
-        name: ClassVar[str] = "test"
-        image = "ubuntu"
-
-        class Parameters:
-            v1: str
-            v2: str = "123"
-
-        def specify_manifest(self) -> v1alpha1.ScriptTemplate:
-            return script
-
-    assert TestScriptTemplate().image == "ubuntu"
-
-    assert (
-        ScriptTemplate(
-            name="test", image="ubuntu", parameters_class=TestScriptTemplate.Parameters, manifest=script
-        ).image
-        == "ubuntu"
-    )
-
-
 def test_resource_template_with_input_parameters():
     resource = v1alpha1.ResourceTemplate(action="get")
 
@@ -151,9 +113,7 @@ def test_resource_template_with_input_parameters():
         v1: str
         v2: str = "123"
 
-    assert ResourceTemplate(
-        action="get", name="test", parameters_class=Parameters, manifest=resource
-    ).template == v1alpha1.Template(
+    assert ResourceTemplate(name="test", parameters_class=Parameters, manifest=resource).template == v1alpha1.Template(
         name="test",
         inputs=v1alpha1.Inputs(
             parameters=[v1alpha1.Parameter(name="v1"), v1alpha1.Parameter(name="v2", default="123")]
@@ -167,13 +127,11 @@ def test_resource_template_with_implementation():
 
     class TestResourceTemplate(ResourceTemplate):
         name: ClassVar[str] = "test"
+        action = "get"
 
         class Parameters:
             v1: str
             v2: str = "123"
-
-        def specify_manifest(self) -> v1alpha1.ResourceTemplate:
-            return resource
 
     assert TestResourceTemplate().template == v1alpha1.Template(
         name="test",

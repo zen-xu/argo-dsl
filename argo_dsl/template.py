@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from abc import ABC
 from abc import abstractmethod
 from typing import Callable
@@ -113,20 +115,27 @@ class ExecutorTemplate(Template, Generic[T]):
             ExecutorTemplate, super().__new__(cls, name=name, parameters_class=parameters_class, hooks=hooks)
         )
 
-        manifest: T = manifest or template.specify_manifest()
+        try:
+            manifest_: T = manifest or template.specify_manifest()
+        except AttributeError as err:
+            result = re.search(r"no attribute '(\w+)'", err.args[0])
+            if result is None:
+                raise err
+            missing_attr = result.groups()[0]
+            raise RuntimeError(f"'{cls.__name__}' must specify attribute '{missing_attr}'")
 
-        if isinstance(manifest, v1.Container):
+        if isinstance(manifest_, v1.Container):
             template.manifest_type = "container"
-        elif isinstance(manifest, v1alpha1.ScriptTemplate):
+        elif isinstance(manifest_, v1alpha1.ScriptTemplate):
             template.manifest_type = "script"
-        elif isinstance(manifest, v1alpha1.ResourceTemplate):
+        elif isinstance(manifest_, v1alpha1.ResourceTemplate):
             template.manifest_type = "resource"
         else:
             raise RuntimeError(
-                f"Unknown manifest type `{type(manifest)}`, must be v1.Container, "
+                f"Unknown manifest type `{type(manifest_)}`, must be v1.Container, "
                 "v1alpha1.ScriptTemplate or v1alpha1.ResourceTemplate"
             )
-        template.manifest = manifest
+        template.manifest = manifest_
 
         return template
 
@@ -145,49 +154,36 @@ class ExecutorTemplate(Template, Generic[T]):
 
 
 class ContainerTemplate(ExecutorTemplate[v1.Container]):
-    image: Optional[str] = None
+    image: str
 
-    def __new__(
-        cls,
-        *,
-        name: Optional[str] = None,
-        image: Optional[str] = None,
-        parameters_class: Optional[type] = None,
-        hooks: Optional[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = None,
-        manifest: Optional[Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]] = None,
-    ) -> ContainerTemplate:
-        template = cast(
-            ContainerTemplate,
-            super().__new__(cls, name=name, parameters_class=parameters_class, hooks=hooks, manifest=manifest),
-        )
-        template.image = image or cls.image
-        return template
+    def specify_manifest(self) -> v1.Container:
+        return v1.Container(image=self.image)
 
 
 class ScriptTemplate(ExecutorTemplate[v1alpha1.ScriptTemplate]):
-    image: Optional[str] = None
+    image: str
+    source: str
 
-    def __new__(
-        cls,
-        *,
-        name: Optional[str] = None,
-        image: Optional[str] = None,
-        parameters_class: Optional[type] = None,
-        hooks: Optional[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = None,
-        manifest: Optional[Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]] = None,
-    ) -> ScriptTemplate:
-        template = cast(
-            ScriptTemplate,
-            super().__new__(cls, name=name, parameters_class=parameters_class, hooks=hooks, manifest=manifest),
-        )
-        template.image = image or cls.image
-        return template
+    def specify_manifest(self) -> v1alpha1.ScriptTemplate:
+        return v1alpha1.ScriptTemplate(image=self.image, source=self.source)
 
 
 class ResourceTemplate(ExecutorTemplate[v1alpha1.ResourceTemplate]):
-    action: Optional[Literal["get", "create", "apply", "delete", "replace", "patch"]] = None
+    action: Literal["get", "create", "apply", "delete", "replace", "patch"]
+    resource_manifest: Optional[str] = None
     failureCondition: Optional[str] = None
-    flags: List[str] = []
-    mergeStrategy: Literal["strategic", "merge", "json"] = "strategic"
-    setOwnerReference: bool = False
+    flags: Optional[List[str]] = None
+    mergeStrategy: Optional[Literal["strategic", "merge", "json"]] = None
+    setOwnerReference: Optional[bool] = None
     successCondition: Optional[str] = None
+
+    def specify_manifest(self) -> v1alpha1.ResourceTemplate:
+        return v1alpha1.ResourceTemplate(
+            action=self.action,
+            manifest=self.resource_manifest,
+            failureCondition=self.failureCondition,
+            flags=self.flags,
+            mergeStrategy=self.mergeStrategy,
+            setOwnerReference=self.setOwnerReference,
+            successCondition=self.successCondition,
+        )
