@@ -90,7 +90,7 @@ class PythonDecorator(ScriptDecorator):
     max_args_repr_length: int = 20
 
     def generate_source(self) -> str:
-        source = super().generate_source()
+        source = self.func.body.strip()
 
         if self.func.parameters:
             pickle_func_source = (
@@ -104,7 +104,7 @@ del load_args"""
                 % self.pickle_protocol
             )
 
-            source = f"{pickle_func_source}\n{source}"
+            source = f"{pickle_func_source}\n\n{source}"
 
         return source
 
