@@ -85,3 +85,22 @@ python /tmp/script"""
         v1alpha1.Parameter(name="b", default="2"),
         v1alpha1.Parameter(name="arg_pickle"),
     ]
+
+
+def test_python_decorator_without_parameters():
+    @python(image="python")
+    def python_template():
+        print("Hello World")
+
+    assert (
+        python_template().manifest.source
+        == """\
+cat > /tmp/script << EOL
+print("Hello World")
+EOL
+
+set -e
+
+
+python /tmp/script"""
+    )
