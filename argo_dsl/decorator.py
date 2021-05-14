@@ -31,11 +31,13 @@ class ScriptDecorator(ExecutorTemplateDecorator):
     def generate_template(self) -> Type[ScriptTemplate]:
         source = self.generate_source()
         source = f"""\
-{self.pre_run}
 cat > /tmp/script << EOL
 {source}
 EOL
 
+set -e
+
+{self.pre_run}
 {self.command} /tmp/script
 {self.post_run}
 """.strip()
