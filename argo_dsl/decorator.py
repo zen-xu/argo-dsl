@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from pydantic import PrivateAttr
 
 from .api.io.argoproj.workflow import v1alpha1
+from .template import ExecutorTemplate
 from .template import ScriptTemplate
 from .utils import Function
 
@@ -23,11 +24,11 @@ class ExecutorTemplateDecorator(BaseModel):
     def __call__(
         self,
         func: Callable[..., Optional[str]],
-    ) -> Type[ScriptTemplate]:
+    ) -> Type[ExecutorTemplate]:
         self._func = Function(func)
         return self.generate_template()
 
-    def generate_template(self) -> Type[ScriptTemplate]:
+    def generate_template(self) -> Type[ExecutorTemplate]:
         raise NotImplementedError
 
 
