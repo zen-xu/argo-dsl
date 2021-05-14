@@ -116,6 +116,10 @@ python = PythonDecorator()
 
 def image(image_name: str) -> Callable[[Type[ScriptTemplate]], Type[ScriptTemplate]]:
     def wrapper(kls: Type[ScriptTemplate]) -> Type[ScriptTemplate]:
-        ...
+        class T(kls):  # type: ignore
+            image = image_name
+
+        T.__name__ = kls.__name__
+        return T
 
     return wrapper
