@@ -1,22 +1,28 @@
 from typing import Callable
 from typing import ClassVar
-from typing import Final
 from typing import Optional
 from typing import Type
+
+from pydantic import BaseModel
+from pydantic import PrivateAttr
 
 from .api.io.argoproj.workflow import v1alpha1
 from .template import ScriptTemplate
 from .utils import Function
 
 
-class ExecutorTemplateDecorator:
-    func: Function
+class ExecutorTemplateDecorator(BaseModel):
+    _func: Function = PrivateAttr()
+
+    @property
+    def func(self) -> Function:
+        return self._func
 
     def __call__(
         self,
         func: Callable[..., Optional[str]],
     ) -> Type[ScriptTemplate]:
-        self.func = Function(func)
+        self._func = Function(func)
         return self.generate_template()
 
     def generate_template(self) -> Type[ScriptTemplate]:
@@ -24,6 +30,7 @@ class ExecutorTemplateDecorator:
 
 
 class ScriptDecorator(ExecutorTemplateDecorator):
+    image: str
     command: str = ""
     pre_run: str = ""
     post_run: str = ""
@@ -44,6 +51,7 @@ set -e
         decorator = self
 
         class Script(ScriptTemplate):
+            image = decorator.image
             name: ClassVar[str] = decorator.func.name
             Parameters = decorator.generate_parameter_class()
 
@@ -59,11 +67,11 @@ set -e
         return self.func.parameter_class
 
 
-script = ScriptDecorator()
+script = ScriptDecorator
 
 
 class BashDecorator(ScriptDecorator):
-    command: Final[str] = "bash"  # type: ignore
+    command: str = "bash"
 
     def generate_source(self) -> str:
         source = super().generate_source()
@@ -73,11 +81,11 @@ class BashDecorator(ScriptDecorator):
         return source
 
 
-bash = BashDecorator()
+bash = BashDecorator
 
 
 class PythonDecorator(ScriptDecorator):
-    command: Final[str] = "python"  # type: ignore
+    command: str = "python"
     pickle_protocol: Optional[int] = None
     max_args_repr_length: int = 20
 
@@ -111,15 +119,4 @@ del load_args"""
         return Parameters
 
 
-python = PythonDecorator()
-
-
-def image(image_name: str) -> Callable[[Type[ScriptTemplate]], Type[ScriptTemplate]]:
-    def wrapper(kls: Type[ScriptTemplate]) -> Type[ScriptTemplate]:
-        class T(kls):  # type: ignore
-            image = image_name
-
-        T.__name__ = kls.__name__
-        return T
-
-    return wrapper
+python = PythonDecorator
