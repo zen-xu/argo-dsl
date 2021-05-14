@@ -161,9 +161,6 @@ def test_resource_template_with_input_parameters():
         resource=resource,
     )
 
-    with pytest.raises(RuntimeError):
-        ResourceTemplate(name="test", parameters_class=Parameters)
-
 
 def test_resource_template_with_implementation():
     resource = v1alpha1.ResourceTemplate(action="get")
@@ -185,20 +182,6 @@ def test_resource_template_with_implementation():
         ),
         resource=resource,
     )
-
-    with pytest.raises(RuntimeError):
-
-        class TestResourceTemplate2(ResourceTemplate):
-            name: ClassVar[str] = "test"
-
-            class Parameters:
-                v1: str
-                v2: str = "123"
-
-            def specify_manifest(self):
-                return None
-
-        TestResourceTemplate2()
 
 
 def test_template_hooks_with_input_parameters():

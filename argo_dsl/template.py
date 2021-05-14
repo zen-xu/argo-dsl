@@ -185,41 +185,9 @@ class ScriptTemplate(ExecutorTemplate[v1alpha1.ScriptTemplate]):
 
 
 class ResourceTemplate(ExecutorTemplate[v1alpha1.ResourceTemplate]):
-    action: Literal["get", "create", "apply", "delete", "replace", "patch"]
+    action: Optional[Literal["get", "create", "apply", "delete", "replace", "patch"]] = None
     failureCondition: Optional[str] = None
     flags: List[str] = []
     mergeStrategy: Literal["strategic", "merge", "json"] = "strategic"
     setOwnerReference: bool = False
     successCondition: Optional[str] = None
-
-    def __new__(
-        cls,
-        *,
-        name: Optional[str] = None,
-        parameters_class: Optional[Type] = None,
-        hooks: Optional[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = None,
-        manifest: Optional[Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]] = None,
-        action: Optional[Literal["get", "create", "apply", "delete", "replace", "patch"]] = None,
-        failureCondition: Optional[str] = None,
-        flags: Optional[List[str]] = None,
-        mergeStrategy: Optional[Literal["strategic", "merge", "json"]] = None,
-        setOwnerReference: Optional[bool] = None,
-        successCondition: Optional[str] = None,
-    ) -> ResourceTemplate:
-        template = cast(
-            ResourceTemplate,
-            super().__new__(cls, name=name, parameters_class=parameters_class, hooks=hooks, manifest=manifest),
-        )
-
-        if template.manifest is None:
-            try:
-                template.action = cls.action if action is None else action
-            except AttributeError:
-                raise RuntimeError("action is not specified for ResourceTemplate")
-
-        template.failureCondition = cls.failureCondition if failureCondition is None else failureCondition
-        template.flags = cls.flags if flags is None else flags
-        template.mergeStrategy = cls.mergeStrategy if mergeStrategy is None else mergeStrategy
-        template.setOwnerReference = cls.setOwnerReference if setOwnerReference is None else setOwnerReference
-        template.successCondition = cls.successCondition if successCondition is None else successCondition
-        return template
