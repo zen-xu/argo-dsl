@@ -10,6 +10,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 from pydantic import PrivateAttr
+from pydantic.generics import GenericModel
 from typing_extensions import Literal
 
 from .api.io.argoproj.workflow import v1alpha1
@@ -163,3 +164,14 @@ class ResourceDecorator(ExecutorTemplateDecorator[ResourceTemplate]):
 
 
 resource_template = ResourceDecorator
+
+
+class Hook(GenericModel, Generic[_T]):
+    def __call__(self, t: Type[_T]) -> Type[_T]:
+        class T(t):  # type: ignore
+            __hooks__ = t.__hooks__ + [self.hook()]
+
+        return T
+
+    def hook(self) -> Callable[[v1alpha1.Template], v1alpha1.Template]:
+        raise NotImplementedError

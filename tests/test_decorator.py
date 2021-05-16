@@ -148,3 +148,22 @@ kind: Pod
 metadata:
   name: demo"""
     )
+
+
+def test_hook():
+    class image(Hook):
+        image: str
+
+        def hook(self) -> Callable[[v1alpha1.Template], v1alpha1.Template]:
+            def add_image(template: v1alpha1.Template) -> v1alpha1.Template:
+                template.script.image = "test"
+                return template
+
+            return add_image
+
+    @image(image="test")
+    @script_template(image="ubuntu")
+    def script():
+        ...
+
+    assert script().template.script.image == "test"
