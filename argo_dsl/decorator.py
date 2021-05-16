@@ -31,6 +31,12 @@ class ExecutorTemplateDecorator(BaseModel):
     def generate_template(self) -> Type[ExecutorTemplate]:
         raise NotImplementedError
 
+    def generate_source(self) -> str:
+        return self.func.docstring or self.func.return_value or ""
+
+    def generate_parameter_class(self) -> type:
+        return self.func.parameter_class
+
 
 class ScriptDecorator(ExecutorTemplateDecorator):
     image: str
@@ -62,12 +68,6 @@ set -e
                 return v1alpha1.ScriptTemplate(image=self.image, source=source, command=["bash"])
 
         return Script
-
-    def generate_source(self) -> str:
-        return self.func.docstring or self.func.return_value or ""
-
-    def generate_parameter_class(self) -> type:
-        return self.func.parameter_class
 
 
 script = ScriptDecorator
