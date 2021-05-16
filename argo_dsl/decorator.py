@@ -13,13 +13,13 @@ from pydantic import PrivateAttr
 from typing_extensions import Literal
 
 from .api.io.argoproj.workflow import v1alpha1
-from .template import ExecutorTemplate
 from .template import ResourceTemplate
 from .template import ScriptTemplate
+from .template import Template
 from .utils import Function
 
 
-_T = TypeVar("_T", bound=ExecutorTemplate)
+_T = TypeVar("_T", bound=Template)
 
 
 class ExecutorTemplateDecorator(BaseModel, Generic[_T]):
