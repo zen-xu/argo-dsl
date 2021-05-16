@@ -3,15 +3,18 @@ from typing import Callable
 from typing import ClassVar
 from typing import Dict
 from typing import Generic
+from typing import List
 from typing import Optional
 from typing import Type
 from typing import TypeVar
 
 from pydantic import BaseModel
 from pydantic import PrivateAttr
+from typing_extensions import Literal
 
 from .api.io.argoproj.workflow import v1alpha1
 from .template import ExecutorTemplate
+from .template import ResourceTemplate
 from .template import ScriptTemplate
 from .utils import Function
 
@@ -131,3 +134,32 @@ del load_args"""
 
 
 python = PythonDecorator
+
+
+class ResourceDecorator(ExecutorTemplateDecorator[ResourceTemplate]):
+    action: Literal["get", "create", "apply", "delete", "replace", "patch"]
+    resource_manifest: Optional[str] = None
+    failureCondition: Optional[str] = None
+    flags: Optional[List[str]] = None
+    mergeStrategy: Optional[Literal["strategic", "merge", "json"]] = None
+    setOwnerReference: Optional[bool] = None
+    successCondition: Optional[str] = None
+
+    def generate_template(self) -> Type[ResourceTemplate]:
+        manifest = self.generate_source()
+
+        class Resource(ResourceTemplate):
+            name = self.func.name
+            Parameters = self.generate_parameter_class()
+            action = self.action
+            resource_manifest = manifest
+            failureCondition = self.failureCondition
+            flags = self.flags
+            mergeStrategy = self.mergeStrategy
+            setOwnerReference = self.setOwnerReference
+            successCondition = self.successCondition
+
+        return Resource
+
+
+resource = ResourceDecorator

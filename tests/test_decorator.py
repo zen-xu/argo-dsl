@@ -104,3 +104,46 @@ set -e
 
 python /tmp/script"""
     )
+
+
+def test_resource_decorator_with_parameters():
+    @resource(action="get")
+    def get_pod(name):
+        """
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: {{inputs.parameters.name}}
+        """
+
+    assert (
+        get_pod().resource_manifest
+        == """\
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{inputs.parameters.name}}"""
+    )
+    assert new_parameters(get_pod.Parameters) == [
+        v1alpha1.Parameter(name="name"),
+    ]
+
+
+def test_resource_decorator_without_parameters():
+    @resource(action="get")
+    def get_pod():
+        """
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: demo
+        """
+
+    assert (
+        get_pod().resource_manifest
+        == """\
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demo"""
+    )
