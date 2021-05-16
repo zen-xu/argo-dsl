@@ -2,8 +2,10 @@ from typing import Any
 from typing import Callable
 from typing import ClassVar
 from typing import Dict
+from typing import Generic
 from typing import Optional
 from typing import Type
+from typing import TypeVar
 
 from pydantic import BaseModel
 from pydantic import PrivateAttr
@@ -14,7 +16,10 @@ from .template import ScriptTemplate
 from .utils import Function
 
 
-class ExecutorTemplateDecorator(BaseModel):
+_T = TypeVar("_T", bound=ExecutorTemplate)
+
+
+class ExecutorTemplateDecorator(BaseModel, Generic[_T]):
     _func: Function = PrivateAttr()
 
     @property
@@ -24,11 +29,11 @@ class ExecutorTemplateDecorator(BaseModel):
     def __call__(
         self,
         func: Callable[..., Optional[str]],
-    ) -> Type[ExecutorTemplate]:
+    ) -> Type[_T]:
         self._func = Function(func)
         return self.generate_template()
 
-    def generate_template(self) -> Type[ExecutorTemplate]:
+    def generate_template(self) -> Type[_T]:
         raise NotImplementedError
 
     def generate_source(self) -> str:
@@ -38,7 +43,7 @@ class ExecutorTemplateDecorator(BaseModel):
         return self.func.parameter_class
 
 
-class ScriptDecorator(ExecutorTemplateDecorator):
+class ScriptDecorator(ExecutorTemplateDecorator[ScriptTemplate]):
     image: str
     command: str = ""
     pre_run: str = ""
