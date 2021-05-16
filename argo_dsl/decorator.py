@@ -78,7 +78,7 @@ set -e
         return Script
 
 
-script = ScriptDecorator
+script_template = ScriptDecorator
 
 
 class BashDecorator(ScriptDecorator):
@@ -92,7 +92,7 @@ class BashDecorator(ScriptDecorator):
         return source
 
 
-bash = BashDecorator
+bash_template = BashDecorator
 
 
 class PythonDecorator(ScriptDecorator):
@@ -133,7 +133,7 @@ del load_args"""
         return type("Parameters", (), {"__annotations__": annotations, **default_fields})
 
 
-python = PythonDecorator
+python_template = PythonDecorator
 
 
 class ResourceDecorator(ExecutorTemplateDecorator[ResourceTemplate]):
@@ -162,4 +162,4 @@ class ResourceDecorator(ExecutorTemplateDecorator[ResourceTemplate]):
         return Resource
 
 
-resource = ResourceDecorator
+resource_template = ResourceDecorator

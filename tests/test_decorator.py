@@ -3,8 +3,8 @@ from argo_dsl.template import new_parameters
 
 
 def test_script_decorator():
-    @script(image="ubuntu", command="cat", pre_run="echo start", post_run="echo done")
-    def script_template(a: str, b: int = 2):
+    @script_template(image="ubuntu", command="cat", pre_run="echo start", post_run="echo done")
+    def script(a: str, b: int = 2):
         """
         hello world
         """
@@ -13,12 +13,12 @@ def test_script_decorator():
         a: str
         b: int = 2
 
-    assert issubclass(script_template, ScriptTemplate)
-    assert script_template.image == "ubuntu"
-    assert script_template.name == "script_template"
-    assert new_parameters(script_template.Parameters) == new_parameters(Parameters)
+    assert issubclass(script, ScriptTemplate)
+    assert script.image == "ubuntu"
+    assert script.name == "script"
+    assert new_parameters(script.Parameters) == new_parameters(Parameters)
     assert (
-        script_template().manifest.source
+        script().manifest.source
         == """\
 cat > /tmp/script << EOL
 hello world
@@ -33,14 +33,14 @@ echo done"""
 
 
 def test_bash_decorator():
-    @bash(image="ubuntu")
-    def bash_template(a: str, b: int = 2):
+    @bash_template(image="ubuntu")
+    def echo(a: str, b: int = 2):
         """
         echo $a, $b
         """
 
     assert (
-        bash_template().manifest.source
+        echo().manifest.source
         == """\
 cat > /tmp/script << EOL
 a="{{inputs.parameters.a}}"
@@ -56,12 +56,12 @@ bash /tmp/script"""
 
 
 def test_python_decorator_with_parameters():
-    @python(image="python")
-    def python_template(a: str, b: int = 2):
+    @python_template(image="python")
+    def print_result(a: str, b: int = 2):
         print(a * b)
 
     assert (
-        python_template().manifest.source
+        print_result().manifest.source
         == """\
 cat > /tmp/script << EOL
 def load_args():
@@ -80,7 +80,7 @@ set -e
 python /tmp/script"""
     )
 
-    assert new_parameters(python_template.Parameters) == [
+    assert new_parameters(print_result.Parameters) == [
         v1alpha1.Parameter(name="a"),
         v1alpha1.Parameter(name="b", default="2"),
         v1alpha1.Parameter(name="arg_pickle"),
@@ -88,12 +88,12 @@ python /tmp/script"""
 
 
 def test_python_decorator_without_parameters():
-    @python(image="python")
-    def python_template():
+    @python_template(image="python")
+    def print_str():
         print("Hello World")
 
     assert (
-        python_template().manifest.source
+        print_str().manifest.source
         == """\
 cat > /tmp/script << EOL
 print("Hello World")
@@ -107,7 +107,7 @@ python /tmp/script"""
 
 
 def test_resource_decorator_with_parameters():
-    @resource(action="get")
+    @resource_template(action="get")
     def get_pod(name):
         """
         apiVersion: v1
@@ -124,13 +124,14 @@ kind: Pod
 metadata:
   name: {{inputs.parameters.name}}"""
     )
+    assert get_pod().name == "get_pod"
     assert new_parameters(get_pod.Parameters) == [
         v1alpha1.Parameter(name="name"),
     ]
 
 
 def test_resource_decorator_without_parameters():
-    @resource(action="get")
+    @resource_template(action="get")
     def get_pod():
         """
         apiVersion: v1
