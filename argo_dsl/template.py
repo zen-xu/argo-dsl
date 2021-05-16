@@ -24,7 +24,7 @@ from argo_dsl.api.io.argoproj.workflow import v1alpha1
 from argo_dsl.api.io.k8s.api.core import v1
 
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
 class Template(ABC):
@@ -99,7 +99,7 @@ def new_parameters(cls: Optional[Type]) -> Optional[List[v1alpha1.Parameter]]:
     return parameters
 
 
-class ExecutorTemplate(Template, Generic[T]):
+class ExecutorTemplate(Template, Generic[_T]):
     manifest_type: str
     manifest: Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]
 
@@ -116,7 +116,7 @@ class ExecutorTemplate(Template, Generic[T]):
         )
 
         try:
-            manifest_: T = manifest or template.specify_manifest()
+            manifest_: _T = manifest or template.specify_manifest()
         except AttributeError as err:
             result = re.search(r"no attribute '(\w+)'", err.args[0])
             if result is None:
@@ -147,7 +147,7 @@ class ExecutorTemplate(Template, Generic[T]):
             {"name": name, "inputs": v1alpha1.Inputs(parameters=parameters), self.manifest_type: self.manifest}
         )
 
-    def specify_manifest(self) -> T:
+    def specify_manifest(self) -> _T:
         # if `manifest` is not provided when __init__, Template should promise
         # has implemented the method `specify_manifest`
         raise RuntimeError("Need implement method `specify_manifest`")
