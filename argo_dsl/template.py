@@ -17,8 +17,8 @@ import yaml
 from pydantic.typing import resolve_annotations
 from typing_extensions import Literal
 
-from argo_dsl.api.io.argoproj.workflow import v1alpha1
-from argo_dsl.api.io.k8s.api.core import v1
+from .api.io.argoproj.workflow import v1alpha1
+from .api.io.k8s.api.core import v1
 
 
 _T = TypeVar("_T")
