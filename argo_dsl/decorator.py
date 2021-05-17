@@ -40,9 +40,6 @@ class TemplateDecorator(BaseModel, Generic[_T]):
     def generate_template(self) -> Type[_T]:
         raise NotImplementedError
 
-    def generate_source(self) -> str:
-        return self.func.docstring or self.func.return_value or ""
-
     def generate_parameter_class(self) -> type:
         return self.func.parameter_class
 
@@ -77,6 +74,9 @@ set -e
                 return v1alpha1.ScriptTemplate(image=self.image, source=source, command=["bash"])
 
         return Script
+
+    def generate_source(self) -> str:
+        return self.func.docstring or self.func.return_value or ""
 
 
 script_template = ScriptDecorator
@@ -147,7 +147,7 @@ class ResourceDecorator(TemplateDecorator[ResourceTemplate]):
     successCondition: Optional[str] = None
 
     def generate_template(self) -> Type[ResourceTemplate]:
-        manifest = self.generate_source()
+        manifest = self.generate_manifest()
 
         class Resource(ResourceTemplate):
             name = self.func.name
@@ -161,6 +161,9 @@ class ResourceDecorator(TemplateDecorator[ResourceTemplate]):
             successCondition = self.successCondition
 
         return Resource
+
+    def generate_manifest(self) -> str:
+        return self.func.docstring or self.func.return_value or ""
 
 
 resource_template = ResourceDecorator
