@@ -23,7 +23,7 @@ from .utils import Function
 _T = TypeVar("_T", bound=Template)
 
 
-class ExecutorTemplateDecorator(BaseModel, Generic[_T]):
+class TemplateDecorator(BaseModel, Generic[_T]):
     _func: Function = PrivateAttr()
 
     @property
@@ -47,7 +47,7 @@ class ExecutorTemplateDecorator(BaseModel, Generic[_T]):
         return self.func.parameter_class
 
 
-class ScriptDecorator(ExecutorTemplateDecorator[ScriptTemplate]):
+class ScriptDecorator(TemplateDecorator[ScriptTemplate]):
     image: str
     command: str = ""
     pre_run: str = ""
@@ -137,7 +137,7 @@ del load_args"""
 python_template = PythonDecorator
 
 
-class ResourceDecorator(ExecutorTemplateDecorator[ResourceTemplate]):
+class ResourceDecorator(TemplateDecorator[ResourceTemplate]):
     action: Literal["get", "create", "apply", "delete", "replace", "patch"]
     resource_manifest: Optional[str] = None
     failureCondition: Optional[str] = None
