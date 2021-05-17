@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import re
-
 from abc import ABC
 from abc import abstractmethod
 from typing import Callable
@@ -13,7 +11,6 @@ from typing import Optional
 from typing import Type
 from typing import TypeVar
 from typing import Union
-from typing import cast
 
 import yaml
 
@@ -33,24 +30,16 @@ class Template(ABC):
     template: v1alpha1.Template
     __hooks__: ClassVar[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = []
 
-    def __new__(
-        cls,
-        *,
-        name: Optional[str] = None,
-        parameters_class: Optional[Type] = None,
-        hooks: Optional[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = None,
-    ) -> Template:
-        cls.name = name or cls.name
-        cls.Parameters = parameters_class or cls.Parameters
-        cls.__hooks__ = hooks or cls.__hooks__
-
-        template = super().__new__(cls)
-        return template
-
-    def __init__(self, **kwargs):
+    def __init__(self):
+        self.construct()
         self.template = self.compile()
         for hook in self.__hooks__:
             self.template = hook(self.template)
+
+    def construct(self):
+        """
+        Subclass need to implement `construct` method rather than __init__
+        """
 
     def update_template(self):
         self.template = self.compile()
@@ -100,56 +89,39 @@ def new_parameters(cls: Optional[Type]) -> Optional[List[v1alpha1.Parameter]]:
 
 
 class ExecutorTemplate(Template, Generic[_T]):
-    manifest_type: str
-    manifest: Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]
+    manifest: Union[v1alpha1.ScriptTemplate, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]
 
-    def __new__(
-        cls,
-        *,
-        name: Optional[str] = None,
-        parameters_class: Optional[Type] = None,
-        hooks: Optional[List[Callable[[v1alpha1.Template], v1alpha1.Template]]] = None,
-        manifest: Optional[Union[v1.Container, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]] = None,
-    ) -> ExecutorTemplate:
-        template = cast(
-            ExecutorTemplate, super().__new__(cls, name=name, parameters_class=parameters_class, hooks=hooks)
-        )
+    def construct(self):
+        if not hasattr(self, "manifest"):
+            self.manifest = self.specify_manifest()
 
-        try:
-            manifest_: _T = manifest or template.specify_manifest()
-        except AttributeError as err:
-            result = re.search(r"no attribute '(\w+)'", err.args[0])
-            if result is None:
-                raise err
-            missing_attr = result.groups()[0]
-            raise RuntimeError(f"'{cls.__name__}' must specify attribute '{missing_attr}'")
-
-        if isinstance(manifest_, v1.Container):
-            template.manifest_type = "container"
-        elif isinstance(manifest_, v1alpha1.ScriptTemplate):
-            template.manifest_type = "script"
-        elif isinstance(manifest_, v1alpha1.ResourceTemplate):
-            template.manifest_type = "resource"
+    @property
+    def _manifest_type(self) -> str:
+        if isinstance(self.manifest, v1.Container):
+            return "container"
+        elif isinstance(self.manifest, v1alpha1.ScriptTemplate):
+            return "script"
+        elif isinstance(self.manifest, v1alpha1.ResourceTemplate):
+            return "resource"
         else:
             raise RuntimeError(
-                f"Unknown manifest type `{type(manifest_)}`, must be v1.Container, "
+                f"Unknown manifest type `{type(self.manifest)}`, must be v1.Container, "
                 "v1alpha1.ScriptTemplate or v1alpha1.ResourceTemplate"
             )
-        template.manifest = manifest_
-
-        return template
 
     def compile(self) -> v1alpha1.Template:
         parameters = new_parameters(self.Parameters)
         name = self.name or self.__class__.__name__
 
         return v1alpha1.Template.validate(
-            {"name": name, "inputs": v1alpha1.Inputs(parameters=parameters), self.manifest_type: self.manifest}
+            {"name": name, "inputs": v1alpha1.Inputs(parameters=parameters), self._manifest_type: self.manifest}
         )
 
     def specify_manifest(self) -> _T:
-        # if `manifest` is not provided when __init__, Template should promise
-        # has implemented the method `specify_manifest`
+        """
+        If class var `manifest` is not provided, use this method to
+        init `manifest`
+        """
         raise RuntimeError("Need implement method `specify_manifest`")
 
 

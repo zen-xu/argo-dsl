@@ -20,25 +20,7 @@ def test_new_parameters():
     ]
 
 
-def test_container_template_with_input_parameters():
-    container = v1.Container(image="ubuntu")
-
-    class Parameters:
-        v1: str
-        v2: str = "123"
-
-    assert ContainerTemplate(
-        name="test", parameters_class=Parameters, manifest=container
-    ).template == v1alpha1.Template(
-        name="test",
-        inputs=v1alpha1.Inputs(
-            parameters=[v1alpha1.Parameter(name="v1"), v1alpha1.Parameter(name="v2", default="123")]
-        ),
-        container=container,
-    )
-
-
-def test_container_template_with_implementation():
+def test_container_template():
     container = v1.Container(image="ubuntu")
 
     class TestTemplate(ContainerTemplate):
@@ -58,34 +40,7 @@ def test_container_template_with_implementation():
     )
 
 
-def test_missing_template_required_field():
-    with pytest.raises(RuntimeError, match=r"'Container' must specify attribute 'image'"):
-
-        class Container(ContainerTemplate):
-            class Parameters:
-                v1: str
-                v2: str = "123"
-
-        Container()
-
-
-def test_script_template_with_input_parameters():
-    script = v1alpha1.ScriptTemplate(image="ubuntu", source="echo hello")
-
-    class Parameters:
-        v1: str
-        v2: str = "123"
-
-    assert ScriptTemplate(name="test", parameters_class=Parameters, manifest=script).template == v1alpha1.Template(
-        name="test",
-        inputs=v1alpha1.Inputs(
-            parameters=[v1alpha1.Parameter(name="v1"), v1alpha1.Parameter(name="v2", default="123")]
-        ),
-        script=script,
-    )
-
-
-def test_script_template_with_implementation():
+def test_script_template():
     script = v1alpha1.ScriptTemplate(image="ubuntu", source="echo hello")
 
     class TestScriptTemplate(ScriptTemplate):
@@ -106,23 +61,7 @@ def test_script_template_with_implementation():
     )
 
 
-def test_resource_template_with_input_parameters():
-    resource = v1alpha1.ResourceTemplate(action="get")
-
-    class Parameters:
-        v1: str
-        v2: str = "123"
-
-    assert ResourceTemplate(name="test", parameters_class=Parameters, manifest=resource).template == v1alpha1.Template(
-        name="test",
-        inputs=v1alpha1.Inputs(
-            parameters=[v1alpha1.Parameter(name="v1"), v1alpha1.Parameter(name="v2", default="123")]
-        ),
-        resource=resource,
-    )
-
-
-def test_resource_template_with_implementation():
+def test_resource_template():
     resource = v1alpha1.ResourceTemplate(action="get")
 
     class TestResourceTemplate(ResourceTemplate):
@@ -142,29 +81,7 @@ def test_resource_template_with_implementation():
     )
 
 
-def test_template_hooks_with_input_parameters():
-    container = v1.Container(image="ubuntu")
-
-    class Parameters:
-        v1: str
-        v2: str = "123"
-
-    def change_name(template: v1alpha1.Template) -> v1alpha1.Template:
-        template.name = "test2"
-        return template
-
-    assert ContainerTemplate(
-        name="test", parameters_class=Parameters, manifest=container, hooks=[change_name]
-    ).template == v1alpha1.Template(
-        name="test2",
-        inputs=v1alpha1.Inputs(
-            parameters=[v1alpha1.Parameter(name="v1"), v1alpha1.Parameter(name="v2", default="123")]
-        ),
-        container=container,
-    )
-
-
-def test_template_hooks_with_implementation():
+def test_template_hooks():
     container = v1.Container(image="ubuntu")
 
     class TestTemplate(ContainerTemplate):
