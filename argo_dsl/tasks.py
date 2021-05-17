@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import List
@@ -9,10 +8,6 @@ from typing import Optional
 from typing import Union
 
 from argo_dsl.api.io.argoproj.workflow import v1alpha1
-
-
-if TYPE_CHECKING:
-    from .template import Template
 
 
 class _StepOutputs(str):
@@ -41,18 +36,15 @@ Item = _Item()
 
 
 class TaskStep:
-    def __init__(
-        self,
-        t: Template,
-    ):
-        self._template = t
+    def __init__(self, name: str):
+        self._name = name
         self._arguments: Optional[Dict[str, Any]] = None
         self._batch_arguments: Optional[Union[str, List[Dict[str, Any]]]] = None
         self._sequence: Optional[v1alpha1.Sequence] = None
         self._when: Optional[str] = None
 
-        self.outputs_parameters = _StepOutputs(t.name, "parameters")
-        self.outputs_artifacts = _StepOutputs(t.name, "artifacts")
+        self.outputs_parameters = _StepOutputs(name, "parameters")
+        self.outputs_artifacts = _StepOutputs(name, "artifacts")
 
     def call(self, **arguments) -> TaskStep:
         self._arguments = arguments
@@ -77,31 +69,34 @@ class TaskStep:
 
     @property
     def id(self) -> str:
-        return "{{steps.%s.id}}" % self._template.name
+        return "{{steps.%s.id}}" % self._name
 
     @property
     def ip(self) -> str:
-        return "{{steps.%s.ip}}" % self._template.name
+        return "{{steps.%s.ip}}" % self._name
 
     @property
     def status(self) -> str:
-        return "{{steps.%s.status}}" % self._template.name
+        return "{{steps.%s.status}}" % self._name
 
     @property
     def exit_code(self) -> str:
-        return "{{steps.%s.exitCode}}" % self._template.name
+        return "{{steps.%s.exitCode}}" % self._name
 
     @property
     def started_at(self) -> str:
-        return "{{steps.%s.startedAt}}" % self._template.name
+        return "{{steps.%s.startedAt}}" % self._name
 
     @property
     def finished_at(self) -> str:
-        return "{{steps.%s.finishedAt}}" % self._template.name
+        return "{{steps.%s.finishedAt}}" % self._name
 
     @property
     def outputs_result(self) -> str:
-        return "{{steps.%s.outputs.result}}" % self._template.name
+        return "{{steps.%s.outputs.result}}" % self._name
+
+
+S = TaskStep
 
 
 class TaskSteps:

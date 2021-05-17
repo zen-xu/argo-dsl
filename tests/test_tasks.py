@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 
-from argo_dsl.decorator import script_template
 from argo_dsl.tasks import *
 from argo_dsl.tasks import _StepOutputs  # noqa
 
@@ -27,11 +26,7 @@ def test_item():
 
 
 def test_task_step():
-    @script_template(image="python")
-    def demo(a: str, b: str):
-        ...
-
-    step = TaskStep(demo())
+    step = S("demo")
     step.call(a="a", b="b")
     assert step._arguments == {"a": "a", "b": "b"}
 
@@ -54,12 +49,8 @@ def test_task_step():
 
 
 def test_task_steps():
-    @script_template(image="python")
-    def demo(a: str, b: str):
-        ...
-
     task_steps = TaskSteps()
-    step = TaskStep(demo())
+    step = S("demo")
 
     task_steps.add(step)
     assert task_steps.steps == [[step]]
