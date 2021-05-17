@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import List
@@ -8,6 +9,10 @@ from typing import Optional
 from typing import Union
 
 from argo_dsl.api.io.argoproj.workflow import v1alpha1
+
+
+if TYPE_CHECKING:
+    from .template import Template
 
 
 class _StepOutputs(str):
@@ -36,15 +41,14 @@ Item = _Item()
 
 
 class TaskStep:
-    def __init__(self, name: str):
-        self._name = name
+    template: Template
+    name: str
+
+    def __init__(self):
         self._arguments: Optional[Dict[str, Any]] = None
         self._batch_arguments: Optional[Union[str, List[Dict[str, Any]]]] = None
         self._sequence: Optional[v1alpha1.Sequence] = None
         self._when: Optional[str] = None
-
-        self.outputs_parameters = _StepOutputs(name, "parameters")
-        self.outputs_artifacts = _StepOutputs(name, "artifacts")
 
     def call(self, **arguments) -> TaskStep:
         self._arguments = arguments
@@ -69,34 +73,51 @@ class TaskStep:
 
     @property
     def id(self) -> str:
-        return "{{steps.%s.id}}" % self._name
+        return "{{steps.%s.id}}" % self.name
 
     @property
     def ip(self) -> str:
-        return "{{steps.%s.ip}}" % self._name
+        return "{{steps.%s.ip}}" % self.name
 
     @property
     def status(self) -> str:
-        return "{{steps.%s.status}}" % self._name
+        return "{{steps.%s.status}}" % self.name
 
     @property
     def exit_code(self) -> str:
-        return "{{steps.%s.exitCode}}" % self._name
+        return "{{steps.%s.exitCode}}" % self.name
 
     @property
     def started_at(self) -> str:
-        return "{{steps.%s.startedAt}}" % self._name
+        return "{{steps.%s.startedAt}}" % self.name
 
     @property
     def finished_at(self) -> str:
-        return "{{steps.%s.finishedAt}}" % self._name
+        return "{{steps.%s.finishedAt}}" % self.name
 
     @property
     def outputs_result(self) -> str:
-        return "{{steps.%s.outputs.result}}" % self._name
+        return "{{steps.%s.outputs.result}}" % self.name
+
+    @property
+    def outputs_parameters(self) -> _StepOutputs:
+        return _StepOutputs(self.name, "parameters")
+
+    @property
+    def outputs_artifacts(self) -> _StepOutputs:
+        return _StepOutputs(self.name, "artifacts")
 
 
-S = TaskStep
+class TaskStepMaker:
+    def __init__(self, template: Template):
+        self.template = template
+
+    def __call__(self, name: str) -> TaskStep:
+        s = TaskStep()
+        s.template = self.template
+        s.name = name
+
+        return s
 
 
 class TaskSteps:
