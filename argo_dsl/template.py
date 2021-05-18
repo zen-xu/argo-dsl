@@ -88,7 +88,7 @@ def new_parameters(cls: Optional[Type]) -> Optional[List[v1alpha1.Parameter]]:
 class ExecutorTemplate(Template, Generic[_T]):
     manifest: Union[v1alpha1.ScriptTemplate, v1alpha1.ScriptTemplate, v1alpha1.ResourceTemplate]
 
-    def construct(self):
+    def construct(self):  # pragma: no cover
         if not hasattr(self, "manifest"):
             self.manifest = self.specify_manifest()
 
