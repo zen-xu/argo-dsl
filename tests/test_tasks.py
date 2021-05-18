@@ -56,6 +56,8 @@ def test_task_step():
     assert step.started_at == "{{steps.demo.startedAt}}"
     assert step.finished_at == "{{steps.demo.finishedAt}}"
     assert step.outputs_result == "{{steps.demo.outputs.result}}"
+    assert step.outputs_parameters == "{{steps.demo.outputs.parameters}}"
+    assert step.outputs_artifacts == "{{steps.demo.outputs.artifacts}}"
 
 
 def test_task_steps():

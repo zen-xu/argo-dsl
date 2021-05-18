@@ -18,6 +18,24 @@ def test_new_parameters():
         v1alpha1.Parameter(name="v3", enum=["1", "2", "3"], default="2"),
         v1alpha1.Parameter(name="v4", valueFrom=v1alpha1.ValueFrom(default="123")),
     ]
+    assert new_parameters(None) is None
+
+
+def test_executor_template():
+    with pytest.raises(RuntimeError, match=r"Unknown manifest type"):
+
+        class T(ExecutorTemplate):
+            def specify_manifest(self) -> int:
+                return 1
+
+        T()
+
+    with pytest.raises(RuntimeError, match=r"Need implement method"):
+
+        class T(ExecutorTemplate):
+            ...
+
+        T()
 
 
 def test_container_template():

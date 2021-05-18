@@ -41,9 +41,6 @@ class Template(ABC):
         Subclass need to implement `construct` method rather than __init__
         """
 
-    def update_template(self):
-        self.template = self.compile()
-
     @abstractmethod
     def compile(self) -> v1alpha1.Template:
         ...
