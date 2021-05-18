@@ -17,6 +17,7 @@ import yaml
 from pydantic.typing import resolve_annotations
 from typing_extensions import Literal
 
+from . import utils
 from .api.io.argoproj.workflow import v1alpha1
 from .api.io.k8s.api.core import v1
 
@@ -46,7 +47,7 @@ class Template(ABC):
         ...
 
     def __repr__(self) -> str:
-        return yaml.dump(self.template.dict(exclude_none=True))
+        return yaml.dump(self.template.dict(exclude_none=True), Dumper=utils.BlockDumper)
 
 
 def new_parameters(cls: Optional[Type]) -> Optional[List[v1alpha1.Parameter]]:

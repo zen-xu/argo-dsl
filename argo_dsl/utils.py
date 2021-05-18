@@ -10,6 +10,12 @@ from typing import Type
 from typing import Union
 
 
+try:
+    from yaml import CDumper as Dumper
+except ImportError:
+    from yaml import Dumper  # type: ignore
+
+
 def get_function_body(func: Callable[..., Any]) -> str:
     body_lines = []
     left_bracket_num = 0
@@ -84,3 +90,13 @@ def shorten_repr(obj: Any, max_length: int) -> str:
         return repr_obj[:max_length] + "[...]"
 
     return repr_obj
+
+
+class BlockDumper(Dumper):
+    def represent_scalar(self, tag, value, style=None):
+        if re.search("\n", value):
+            style = "|"
+            # remove trailing spaces and newlines which are not allowed in YAML blocks
+            value = re.sub(" +\n", "\n", value).strip()
+
+        return super().represent_scalar(tag, value, style)

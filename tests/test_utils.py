@@ -128,3 +128,23 @@ def test_shorten_repr():
     assert shorten_repr("12345", 10) == "12345"
     assert shorten_repr(12345678, 5) == "12345[...]"
     assert shorten_repr(Decimal(45678), 10) == "Decimal('4[...]"
+
+
+def test_block_dumper():
+    import yaml
+
+    data = """\
+1
+11
+111
+"""
+    datas = {"data": data}
+    assert (
+        yaml.dump(datas, Dumper=BlockDumper)
+        == """\
+data: |-
+  1
+  11
+  111
+"""
+    )
