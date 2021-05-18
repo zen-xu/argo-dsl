@@ -33,6 +33,7 @@ pytest-sugar = "^0.9.4"
 black = "^21.5b0"
 isort = "^5.8.0"
 mypy = "^0.812"
+mypy-extensions = "^0.4.3"
 
 [tool.black]
 line-length = 120

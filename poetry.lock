@@ -118,7 +118,7 @@ toml = ["toml"]
 
 [[package]]
 name = "datamodel-code-generator"
-version = "0.11.4"
+version = "0.11.5"
 description = "Datamodel Code Generator"
 category = "dev"
 optional = false
@@ -686,7 +686,7 @@ rsa = ["oauthlib[signedtoken] (>=3.0.0)"]
 
 [[package]]
 name = "rfc3986"
-version = "1.4.0"
+version = "1.5.0"
 description = "Validating URI References per RFC 3986"
 category = "dev"
 optional = false
@@ -804,7 +804,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "fe48a3bf65c53499c27f6bb24715a4248bc28efb91fc7b77f72d7597d0d9bcc6"
+content-hash = "69e2b5aeae21b7d45092faed44fe2396cbafff7ff4b1f67e223082eaeaf66ba1"
 
 [metadata.files]
 appdirs = [
@@ -902,8 +902,8 @@ coverage = [
     {file = "coverage-5.5.tar.gz", hash = "sha256:ebe78fe9a0e874362175b02371bdfbee64d8edc42a044253ddf4ee7d3c15212c"},
 ]
 datamodel-code-generator = [
-    {file = "datamodel-code-generator-0.11.4.tar.gz", hash = "sha256:5d99a7411166906653d9325c2b1791989be29509241df60870b5239e2ce29498"},
-    {file = "datamodel_code_generator-0.11.4-py3-none-any.whl", hash = "sha256:f24f965ad9e064a67f5b09b312c5654f96364583a7cdd275e773fd1a9da259c0"},
+    {file = "datamodel-code-generator-0.11.5.tar.gz", hash = "sha256:e0e7433a0f2567da4332c50dd14988866f434658ad4288b4c75436ace9e5b4f9"},
+    {file = "datamodel_code_generator-0.11.5-py3-none-any.whl", hash = "sha256:cac3134316ba6355aa18fff810fe5b3470ae07680b23ef748a9ab786feec3374"},
 ]
 dnspython = [
     {file = "dnspython-2.1.0-py3-none-any.whl", hash = "sha256:95d12f6ef0317118d2a1a6fc49aac65ffec7eb8087474158f42f26a639135216"},
@@ -1248,8 +1248,8 @@ requests-oauthlib = [
     {file = "requests_oauthlib-1.3.0-py3.7.egg", hash = "sha256:fa6c47b933f01060936d87ae9327fead68768b69c6c9ea2109c48be30f2d4dbc"},
 ]
 rfc3986 = [
-    {file = "rfc3986-1.4.0-py2.py3-none-any.whl", hash = "sha256:af9147e9aceda37c91a05f4deb128d4b4b49d6b199775fd2d2927768abdc8f50"},
-    {file = "rfc3986-1.4.0.tar.gz", hash = "sha256:112398da31a3344dc25dbf477d8df6cb34f9278a94fee2625d89e4514be8bb9d"},
+    {file = "rfc3986-1.5.0-py2.py3-none-any.whl", hash = "sha256:a86d6e1f5b1dc238b218b012df0aa79409667bb209e58da56d0b94704e712a97"},
+    {file = "rfc3986-1.5.0.tar.gz", hash = "sha256:270aaf10d87d0d4e095063c65bf3ddbc6ee3d0b226328ce21e036f946e421835"},
 ]
 rsa = [
     {file = "rsa-4.7.2-py3-none-any.whl", hash = "sha256:78f9a9bf4e7be0c5ded4583326e7461e3a3c5aae24073648b4bdfa797d78c9d2"},
