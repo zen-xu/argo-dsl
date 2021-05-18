@@ -1,3 +1,20 @@
 [run]
+source = argo_dsl
+branch = True
 omit =
     argo_dsl/api/*
+
+[report]
+precision = 2
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    raise NotImplemented
+    if TYPE_CHECKING:
+    @overload
+    @abstractmethod
+    __repr__
+
+[paths]
+source =
+    argo_dsl/
