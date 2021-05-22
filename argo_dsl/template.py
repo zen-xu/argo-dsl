@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 from abc import abstractmethod
+from typing import Any
 from typing import Callable
 from typing import ClassVar
 from typing import Dict
@@ -23,6 +24,10 @@ from .api.io.k8s.api.core import v1
 
 
 _T = TypeVar("_T")
+
+
+def default_resolve_arguments(arguments: Dict[str, Any]) -> Dict[str, str]:
+    return {k: str(v) for k, v in arguments.items()}
 
 
 class Template(ABC):
@@ -48,6 +53,9 @@ class Template(ABC):
 
     def __repr__(self) -> str:
         return yaml.dump(self.template.dict(exclude_none=True), Dumper=utils.BlockDumper)
+
+    def resolve_arguments(self, arguments: Dict[str, Any]) -> Dict[str, str]:
+        return default_resolve_arguments(arguments)
 
 
 def new_parameters(cls: Optional[Type]) -> Optional[List[v1alpha1.Parameter]]:
