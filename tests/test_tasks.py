@@ -68,6 +68,12 @@ def test_task_step():
     assert step.outputs_artifacts == "{{steps.demo.outputs.artifacts}}"
 
 
+def test_task_refer():
+    refer = TaskStepRefer(template="a", name="b")
+    assert refer.template_ref == v1alpha1.TemplateRef(template="a", name="b")
+    assert refer("demo").workflow_step == v1alpha1.WorkflowStep(name="demo", templateRef=refer.template_ref)
+
+
 def test_task_steps():
     @python_template(image="python")
     def echo():

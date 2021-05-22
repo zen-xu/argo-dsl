@@ -131,6 +131,16 @@ class TaskStepMaker:
         return s
 
 
+class TaskStepRefer:
+    def __init__(self, template: str, name: str, cluster_scope: Optional[bool] = None):
+        self.template_ref = v1alpha1.TemplateRef(template=template, name=name, clusterScope=cluster_scope)
+
+    def __call__(self, name: str) -> TaskStep:
+        workflow_step = v1alpha1.WorkflowStep(name=name, templateRef=self.template_ref)
+        s = TaskStep(workflow_step)
+        return s
+
+
 class TaskSteps:
     def __init__(self):
         self.steps: List[List[TaskStep]] = []
