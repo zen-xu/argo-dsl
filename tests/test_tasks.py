@@ -40,7 +40,7 @@ def test_task_step():
     tst = TaskStepMaker(template=template)
     step = tst("demo")
     assert step.name == "demo"
-    assert step.template == template
+    assert step.resolve_arguments_func == template.resolve_arguments
 
     step.call(a="a", b="b")
     assert step._arguments == {"a": "a", "b": "b"}

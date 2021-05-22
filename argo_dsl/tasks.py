@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Callable
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -44,11 +45,19 @@ def default_resolve_arguments(arguments: Dict[str, Any]) -> Dict[str, str]:
     return {k: str(v) for k, v in arguments.items()}
 
 
-class TaskStep:
-    template: Template
-    name: str
+RESOLVE_ARGUMENTS_FUNCTION = Callable[[Dict[str, Any]], Dict[str, str]]
+RESOLVE_ARGUMENTS_METHOD = Callable[["Template", Dict[str, Any]], Dict[str, str]]
 
-    def __init__(self):
+
+class TaskStep:
+    def __init__(
+        self,
+        name: str,
+        resolve_arguments_func: Union[RESOLVE_ARGUMENTS_FUNCTION, RESOLVE_ARGUMENTS_METHOD] = default_resolve_arguments,
+    ):
+        self.name = name
+        self.resolve_arguments_func = resolve_arguments_func
+
         self._arguments: Optional[Dict[str, Any]] = None
         self._batch_arguments: Optional[Union[str, List[Dict[str, Any]]]] = None
         self._sequence: Optional[v1alpha1.Sequence] = None
@@ -113,14 +122,11 @@ class TaskStep:
 
 
 class TaskStepMaker:
-    def __init__(self, template: Template):
-        self.template = template
+    def __init__(self, template: "Template"):
+        self.resolve_arguments_func = template.resolve_arguments
 
     def __call__(self, name: str) -> TaskStep:
-        s = TaskStep()
-        s.template = self.template
-        s.name = name
-
+        s = TaskStep(name, self.resolve_arguments_func)
         return s
 
 
