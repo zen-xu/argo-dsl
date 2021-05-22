@@ -21,13 +21,10 @@ from typing_extensions import Literal
 from . import utils
 from .api.io.argoproj.workflow import v1alpha1
 from .api.io.k8s.api.core import v1
+from .tasks import default_resolve_arguments
 
 
 _T = TypeVar("_T")
-
-
-def default_resolve_arguments(arguments: Dict[str, Any]) -> Dict[str, str]:
-    return {k: str(v) for k, v in arguments.items()}
 
 
 class Template(ABC):

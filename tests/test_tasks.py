@@ -5,6 +5,11 @@ from argo_dsl.tasks import *
 from argo_dsl.tasks import _StepOutputs  # noqa
 
 
+def test_default_resolve_arguments():
+    arguments = {"a": 1, "b": 1.2}
+    assert default_resolve_arguments(arguments) == {"a": "1", "b": "1.2"}
+
+
 def test_step_outputs():
     inst = _StepOutputs(name="test", kind="params")
 

@@ -21,11 +21,6 @@ def test_new_parameters():
     assert new_parameters(None) is None
 
 
-def test_default_resolve_arguments():
-    arguments = {"a": 1, "b": 1.2}
-    assert default_resolve_arguments(arguments) == {"a": "1", "b": "1.2"}
-
-
 def test_template_resolve_arguments():
     class Demo(Template):
         name = "demo"

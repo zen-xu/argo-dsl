@@ -40,6 +40,10 @@ class _Item(str):
 Item = _Item()
 
 
+def default_resolve_arguments(arguments: Dict[str, Any]) -> Dict[str, str]:
+    return {k: str(v) for k, v in arguments.items()}
+
+
 class TaskStep:
     template: Template
     name: str
