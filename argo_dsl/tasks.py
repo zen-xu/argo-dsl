@@ -52,10 +52,10 @@ RESOLVE_ARGUMENTS_METHOD = Callable[["Template", Dict[str, Any]], Dict[str, str]
 class TaskStep:
     def __init__(
         self,
-        name: str,
+        workflow_step: v1alpha1.WorkflowStep,
         resolve_arguments_func: Union[RESOLVE_ARGUMENTS_FUNCTION, RESOLVE_ARGUMENTS_METHOD] = default_resolve_arguments,
     ):
-        self.name = name
+        self.workflow_step = workflow_step
         self.resolve_arguments_func = resolve_arguments_func
 
         self._arguments: Optional[Dict[str, Any]] = None
@@ -86,47 +86,48 @@ class TaskStep:
 
     @property
     def id(self) -> str:
-        return "{{steps.%s.id}}" % self.name
+        return "{{steps.%s.id}}" % self.workflow_step.name
 
     @property
     def ip(self) -> str:
-        return "{{steps.%s.ip}}" % self.name
+        return "{{steps.%s.ip}}" % self.workflow_step.name
 
     @property
     def status(self) -> str:
-        return "{{steps.%s.status}}" % self.name
+        return "{{steps.%s.status}}" % self.workflow_step.name
 
     @property
     def exit_code(self) -> str:
-        return "{{steps.%s.exitCode}}" % self.name
+        return "{{steps.%s.exitCode}}" % self.workflow_step.name
 
     @property
     def started_at(self) -> str:
-        return "{{steps.%s.startedAt}}" % self.name
+        return "{{steps.%s.startedAt}}" % self.workflow_step.name
 
     @property
     def finished_at(self) -> str:
-        return "{{steps.%s.finishedAt}}" % self.name
+        return "{{steps.%s.finishedAt}}" % self.workflow_step.name
 
     @property
     def outputs_result(self) -> str:
-        return "{{steps.%s.outputs.result}}" % self.name
+        return "{{steps.%s.outputs.result}}" % self.workflow_step.name
 
     @property
     def outputs_parameters(self) -> _StepOutputs:
-        return _StepOutputs(self.name, "parameters")
+        return _StepOutputs(self.workflow_step.name, "parameters")
 
     @property
     def outputs_artifacts(self) -> _StepOutputs:
-        return _StepOutputs(self.name, "artifacts")
+        return _StepOutputs(self.workflow_step.name, "artifacts")
 
 
 class TaskStepMaker:
     def __init__(self, template: "Template"):
-        self.resolve_arguments_func = template.resolve_arguments
+        self.template = template
 
     def __call__(self, name: str) -> TaskStep:
-        s = TaskStep(name, self.resolve_arguments_func)
+        workflow_step = v1alpha1.WorkflowStep(name=name, template=self.template.name)
+        s = TaskStep(workflow_step, self.template.resolve_arguments)
         return s
 
 

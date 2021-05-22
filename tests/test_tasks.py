@@ -39,7 +39,10 @@ def test_task_step():
     template = echo()
     tst = TaskStepMaker(template=template)
     step = tst("demo")
-    assert step.name == "demo"
+    assert step.workflow_step == v1alpha1.WorkflowStep(
+        name="demo",
+        template="echo",
+    )
     assert step.resolve_arguments_func == template.resolve_arguments
 
     step.call(a="a", b="b")
