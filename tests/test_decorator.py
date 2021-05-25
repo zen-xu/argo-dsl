@@ -1,3 +1,5 @@
+import re
+
 from argo_dsl.decorator import *
 from argo_dsl.template import new_parameters
 
@@ -57,19 +59,29 @@ bash /tmp/script"""
 
 def test_python_decorator_with_parameters():
     @python_template(image="python")
-    def print_result(a: str, b: int = 2):
+    def print_result(
+        a: str,
+        b: int = 2,
+        c: float = 3.3,
+        d: bool = False,
+        e: complex = 2j,
+        f: re.Pattern = re.compile("abc"),
+        g: v1alpha1.ValueFrom = v1alpha1.ValueFrom(default="4"),
+    ):
         print(a * b)
 
     assert (
         print_result().manifest.source
         == """\
 cat > /tmp/script << EOL
-def load_args():
-    import pickle
-    pickle_data = bytearray.fromhex("{{inputs.parameters.arg_pickle}}")
-    return pickle.loads(pickle_data, protocol=None)
-globals().update(load_args())
-del load_args
+import pickle
+a = "{{inputs.parameters.a}}"
+b = {{inputs.parameters.b}}
+c = {{inputs.parameters.c}}
+d = {{inputs.parameters.d}}
+e = {{inputs.parameters.e}}
+f = pickle.loads(bytearray.fromhex("{{inputs.parameters.f}}"), protocol=None)
+g = "{{inputs.parameters.g}}"
 
 print(a * b)
 EOL
@@ -83,7 +95,11 @@ python /tmp/script"""
     assert new_parameters(print_result.Parameters) == [
         v1alpha1.Parameter(name="a"),
         v1alpha1.Parameter(name="b", default="2"),
-        v1alpha1.Parameter(name="arg_pickle"),
+        v1alpha1.Parameter(name="c", default="3.3"),
+        v1alpha1.Parameter(name="d", default="False"),
+        v1alpha1.Parameter(name="e", default="2j"),
+        v1alpha1.Parameter(name="f", default=str(pickle.dumps(re.compile("abc")).hex())),
+        v1alpha1.Parameter(name="g", valueFrom=v1alpha1.ValueFrom(default="4")),
     ]
 
 

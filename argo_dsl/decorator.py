@@ -1,3 +1,5 @@
+import pickle
+
 from typing import Any
 from typing import Callable
 from typing import ClassVar
@@ -103,20 +105,28 @@ class PythonDecorator(ScriptDecorator):
 
     def generate_source(self) -> str:
         source = self.func.body.strip()
+        parameter_class = self.func.parameter_class
+
+        is_value_from_param = lambda name, annotation: annotation == v1alpha1.ValueFrom or isinstance(
+            getattr(parameter_class, name, None), v1alpha1.ValueFrom
+        )
+
+        codes = []
+        for param_name, param_annotation in parameter_class.__annotations__.items():
+            if is_value_from_param(param_name, param_annotation) or param_annotation == str:
+                codes.append('%s = "{{inputs.parameters.%s}}"' % (param_name, param_name))
+            elif param_annotation in [int, float, bool, complex]:
+                codes.append("%s = {{inputs.parameters.%s}}" % (param_name, param_name))
+            else:
+                if codes[0] != "import pickle":
+                    codes = ["import pickle"] + codes
+                codes.append(
+                    '%s = pickle.loads(bytearray.fromhex("{{inputs.parameters.%s}}"), protocol=%s)'
+                    % (param_name, param_name, self.pickle_protocol)
+                )
 
         if self.func.parameters:
-            pickle_func_source = (
-                """\
-def load_args():
-    import pickle
-    pickle_data = bytearray.fromhex("{{inputs.parameters.arg_pickle}}")
-    return pickle.loads(pickle_data, protocol=%s)
-globals().update(load_args())
-del load_args"""
-                % self.pickle_protocol
-            )
-
-            source = f"{pickle_func_source}\n\n{source}"
+            source = "\n".join(codes) + f"\n\n{source}"
 
         return source
 
@@ -126,10 +136,17 @@ del load_args"""
             return parameter_class
 
         annotations = dict(parameter_class.__annotations__)
-        annotations["arg_pickle"] = str
+
+        def serialize_default_value(v: Any):
+            if isinstance(v, v1alpha1.ValueFrom):
+                return v
+            elif isinstance(v, (str, int, float, bool, complex)):
+                return str(v)
+            else:
+                return str(pickle.dumps(v, protocol=self.pickle_protocol).hex())
 
         default_fields: Dict[str, Any] = {
-            k: str(v) for k, v in parameter_class.__dict__.items() if not k.startswith("_")
+            k: serialize_default_value(v) for k, v in parameter_class.__dict__.items() if not k.startswith("_")
         }
         return type("Parameters", (), {"__annotations__": annotations, **default_fields})
 
