@@ -101,7 +101,6 @@ bash_template = BashDecorator
 class PythonDecorator(ScriptDecorator):
     command: str = "python"
     pickle_protocol: Optional[int] = None
-    max_args_repr_length: int = 20
 
     def generate_source(self) -> str:
         source = self.func.body.strip()
