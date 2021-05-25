@@ -21,7 +21,7 @@ def test_new_parameters():
     assert new_parameters(None) is None
 
 
-def test_template_resolve_arguments():
+def test_template_serialize_argument():
     class Demo(Template):
         name = "demo"
 
@@ -29,7 +29,8 @@ def test_template_resolve_arguments():
             return v1alpha1.Template(name="demo")
 
     arguments = {"a": 1, "b": 1.2}
-    assert Demo().resolve_arguments(arguments) == {"a": "1", "b": "1.2"}
+    assert Demo().serialize_argument(arguments["a"]) == "1"
+    assert Demo().serialize_argument(arguments["b"]) == "1.2"
 
 
 def test_executor_template():

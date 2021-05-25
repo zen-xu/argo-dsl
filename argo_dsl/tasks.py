@@ -41,22 +41,18 @@ class _Item(str):
 Item = _Item()
 
 
-def default_resolve_arguments(arguments: Dict[str, Any]) -> Dict[str, str]:
-    return {k: str(v) for k, v in arguments.items()}
-
-
-RESOLVE_ARGUMENTS_FUNCTION = Callable[[Dict[str, Any]], Dict[str, str]]
-RESOLVE_ARGUMENTS_METHOD = Callable[["Template", Dict[str, Any]], Dict[str, str]]
+SERIALIZE_ARGUMENT_FUNCTION = Callable[[Any], str]
+SERIALIZE_ARGUMENT_METHOD = Callable[["Template", Any], str]
 
 
 class TaskStep:
     def __init__(
         self,
         workflow_step: v1alpha1.WorkflowStep,
-        resolve_arguments_func: Union[RESOLVE_ARGUMENTS_FUNCTION, RESOLVE_ARGUMENTS_METHOD] = default_resolve_arguments,
+        serialize_argument_func: Union[SERIALIZE_ARGUMENT_FUNCTION, SERIALIZE_ARGUMENT_METHOD] = str,
     ):
         self.workflow_step = workflow_step
-        self.resolve_arguments_func = resolve_arguments_func
+        self.serialize_argument_func = serialize_argument_func
 
         self._arguments: Optional[Dict[str, Any]] = None
         self._batch_arguments: Optional[Union[str, List[Dict[str, Any]]]] = None
@@ -127,7 +123,7 @@ class TaskStepMaker:
 
     def __call__(self, name: str) -> TaskStep:
         workflow_step = v1alpha1.WorkflowStep(name=name, template=self.template.name)
-        s = TaskStep(workflow_step, self.template.resolve_arguments)
+        s = TaskStep(workflow_step, self.template.serialize_argument)
         return s
 
 

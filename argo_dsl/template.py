@@ -21,7 +21,6 @@ from typing_extensions import Literal
 from . import utils
 from .api.io.argoproj.workflow import v1alpha1
 from .api.io.k8s.api.core import v1
-from .tasks import default_resolve_arguments
 
 
 _T = TypeVar("_T")
@@ -51,8 +50,8 @@ class Template(ABC):
     def __repr__(self) -> str:
         return yaml.dump(self.template.dict(exclude_none=True), Dumper=utils.BlockDumper)
 
-    def resolve_arguments(self, arguments: Dict[str, Any]) -> Dict[str, str]:
-        return default_resolve_arguments(arguments)
+    def serialize_argument(self, argument: Any) -> str:
+        return str(argument)
 
 
 def new_parameters(cls: Optional[Type]) -> Optional[List[v1alpha1.Parameter]]:
