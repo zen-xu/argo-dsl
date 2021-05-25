@@ -75,10 +75,16 @@ set -e
             def specify_manifest(self) -> v1alpha1.ScriptTemplate:
                 return v1alpha1.ScriptTemplate(image=self.image, source=source, command=["bash"])
 
+            def serialize_argument(self, argument: Any) -> str:
+                return decorator.serialize_argument(argument)
+
         return Script
 
     def generate_source(self) -> str:
         return self.func.docstring or self.func.return_value or ""
+
+    def serialize_argument(self, argument: Any) -> str:
+        return str(argument)
 
 
 script_template = ScriptDecorator
