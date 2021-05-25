@@ -145,15 +145,19 @@ class PythonDecorator(ScriptDecorator):
         def serialize_default_value(v: Any):
             if isinstance(v, v1alpha1.ValueFrom):
                 return v
-            elif isinstance(v, (str, int, float, bool, complex)):
-                return str(v)
             else:
-                return str(pickle.dumps(v, protocol=self.pickle_protocol).hex())
+                return self.serialize_argument(v)
 
         default_fields: Dict[str, Any] = {
             k: serialize_default_value(v) for k, v in parameter_class.__dict__.items() if not k.startswith("_")
         }
         return type("Parameters", (), {"__annotations__": annotations, **default_fields})
+
+    def serialize_argument(self, argument: Any) -> str:
+        if isinstance(argument, (str, int, float, bool, complex)):
+            return str(argument)
+        else:
+            return str(pickle.dumps(argument, protocol=self.pickle_protocol).hex())
 
 
 python_template = PythonDecorator

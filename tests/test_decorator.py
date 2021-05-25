@@ -92,6 +92,13 @@ set -e
 python /tmp/script"""
     )
 
+    assert print_result().serialize_argument("a") == "a"
+    assert print_result().serialize_argument(1) == "1"
+    assert print_result().serialize_argument(1.1) == "1.1"
+    assert print_result().serialize_argument(2j) == "2j"
+    assert print_result().serialize_argument(True) == "True"
+    assert print_result().serialize_argument(re.compile("abc")) == str(pickle.dumps(re.compile("abc")).hex())
+
     assert new_parameters(print_result.Parameters) == [
         v1alpha1.Parameter(name="a"),
         v1alpha1.Parameter(name="b", default="2"),
