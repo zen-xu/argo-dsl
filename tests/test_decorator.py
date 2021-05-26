@@ -33,6 +33,8 @@ cat /tmp/script
 echo done"""
     )
 
+    assert script().serialize_argument(1) == "1"
+
 
 def test_bash_decorator():
     @bash_template(image="ubuntu")
@@ -108,6 +110,31 @@ python /tmp/script"""
         v1alpha1.Parameter(name="f", default=str(pickle.dumps(re.compile("abc")).hex())),
         v1alpha1.Parameter(name="g", valueFrom=v1alpha1.ValueFrom(default="4")),
     ]
+
+
+def test_python_decorator_with_builtin_parameters():
+    @python_template(image="python")
+    def print_result(
+        a: str,
+        b: int = 2,
+    ):
+        print(a * b)
+
+    assert (
+        print_result().manifest.source
+        == """\
+cat > /tmp/script << EOL
+a = "{{inputs.parameters.a}}"
+b = {{inputs.parameters.b}}
+
+print(a * b)
+EOL
+
+set -e
+
+
+python /tmp/script"""
+    )
 
 
 def test_python_decorator_without_parameters():
